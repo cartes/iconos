@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Seguro con Drive</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+        }
+        
+        h2 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #764ba2;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .section {
+            display: none;
+        }
+        
+        .section.activo {
+            display: block;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn.activo {
+            background: #667eea;
+            color: white;
+        }
+        
+        .mensaje {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .mensaje.exito {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .mensaje.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .datos-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .datos-item small {
+            color: #999;
+            display: block;
+            margin-top: 5px;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            margin-top: 20px;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- LOGIN -->
+        <div id="loginSection" class="section activo">
+            <h2>🔐 Login</h2>
+            <div id="mensajeLogin" class="mensaje"></div>
+            
+            <div class="form-group">
+                <label>Usuario:</label>
+                <input type="text" id="usuarioLogin" placeholder="Tu usuario">
+            </div>
+            
+            <div class="form-group">
+                <label>Contraseña:</label>
+                <input type="password" id="claveLogin" placeholder="Tu contraseña">
+            </div>
+            
+            <button onclick="login()">Ingresar</button>
+            
+            <p style="text-align: center; margin-top: 20px; color: #666;">
+                ¿No tienes cuenta? 
+                <a href="#" onclick="mostrarRegistro(); return false;" style="color: #667eea; cursor: pointer;">
+                    Crear una
+                </a>
+            </p>
+        </div>
+        
+        <!-- REGISTRO -->
+        <div id="registroSection" class="section">
+            <h2>📝 Registrarse</h2>
+            <div id="mensajeRegistro" class="mensaje"></div>
+            
+            <div class="form-group">
+                <label>Usuario:</label>
+                <input type="text" id="usuarioRegistro" placeholder="Elige un usuario">
+            </div>
+            
+            <div class="form-group">
+                <label>Contraseña:</label>
+                <input type="password" id="claveRegistro" placeholder="Contraseña fuerte">
+            </div>
+            
+            <div class="form-group">
+                <label>Confirmar:</label>
+                <input type="password" id="claveConfirm" placeholder="Repite la contraseña">
+            </div>
+            
+            <button onclick="registrarse()">Crear Cuenta</button>
+            
+            <p style="text-align: center; margin-top: 20px; color: #666;">
+                ¿Ya tienes cuenta? 
+                <a href="#" onclick="mostrarLogin(); return false;" style="color: #667eea; cursor: pointer;">
+                    Ingresar
+                </a>
+            </p>
+        </div>
+        
+        <!-- DASHBOARD -->
+        <div id="dashboardSection" class="section">
+            <h2>📊 Dashboard</h2>
+            
+            <div class="tabs">
+                <button class="tab-btn activo" onclick="cambiarTab('guardar')">Guardar</button>
+                <button class="tab-btn" onclick="cambiarTab('historial')">Historial</button>
+            </div>
+            
+            <!-- Guardar datos -->
+            <div id="guardarTab" class="section activo">
+                <div id="mensajeGuardar" class="mensaje"></div>
+                
+                <div class="form-group">
+                    <label>Contenido a guardar:</label>
+                    <textarea id="contenido" placeholder="Escribe lo que quieres guardar..." rows="6"></textarea>
+                </div>
+                
+                <button onclick="guardarDato()">💾 Guardar Cifrado</button>
+            </div>
+            
+            <!-- Historial -->
+            <div id="historialTab" class="section">
+                <div id="historialLista"></div>
+            </div>
+            
+            <button class="logout-btn" onclick="logout()">🚪 Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <script>
+        // ⚠️ REEMPLAZA ESTO CON TU URL DE GOOGLE APPS SCRIPT
+        const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/content360.cl/s/AKfycbzvAqH3GH_zv7YcSEhXVKjlSJe3XivIZZYrEC7V7Bq1eRkYiUmWz-gnz1lEwH7bEUDT/exec';
+        
+        let usuarioActual = null;
+        let claveActual = null;
+        
+        // MOSTRAR/OCULTAR SECCIONES
+        function mostrarLogin() {
+            document.getElementById('loginSection').classList.add('activo');
+            document.getElementById('registroSection').classList.remove('activo');
+        }
+        
+        function mostrarRegistro() {
+            document.getElementById('registroSection').classList.add('activo');
+            document.getElementById('loginSection').classList.remove('activo');
+        }
+        
+        // LOGIN
+        async function login() {
+            const usuario = document.getElementById('usuarioLogin').value;
+            const clave = document.getElementById('claveLogin').value;
+            
+            if (!usuario || !clave) {
+                mostrarMensaje('loginSection', 'error', 'Completa todos los campos');
+                return;
+            }
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        accion: 'login',
+                        usuario: usuario,
+                        clave: clave
+                    })
+                });
+                
+                const resultado = await response.json();
+                
+                if (resultado.success) {
+                    usuarioActual = usuario;
+                    claveActual = clave;
+                    mostrarDashboard();
+                    cargarHistorial();
+                } else {
+                    mostrarMensaje('loginSection', 'error', resultado.error);
+                }
+            } catch (e) {
+                mostrarMensaje('loginSection', 'error', 'Error de conexión: ' + e.message);
+                console.error('Error:', e);
+            }
+        }
+        
+        // REGISTRO
+        async function registrarse() {
+            const usuario = document.getElementById('usuarioRegistro').value;
+            const clave = document.getElementById('claveRegistro').value;
+            const confirm = document.getElementById('claveConfirm').value;
+            
+            if (!usuario || !clave || !confirm) {
+                mostrarMensaje('registroSection', 'error', 'Completa todos los campos');
+                return;
+            }
+            
+            if (clave !== confirm) {
+                mostrarMensaje('registroSection', 'error', 'Las contraseñas no coinciden');
+                return;
+            }
+            
+            if (clave.length < 6) {
+                mostrarMensaje('registroSection', 'error', 'Contraseña muy corta (mínimo 6 caracteres)');
+                return;
+            }
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        accion: 'crearUsuario',
+                        usuario: usuario,
+                        clave: clave
+                    })
+                });
+                
+                const resultado = await response.json();
+                
+                if (resultado.success) {
+                    mostrarMensaje('registroSection', 'exito', 'Cuenta creada! Inicia sesión');
+                    setTimeout(() => mostrarLogin(), 2000);
+                } else {
+                    mostrarMensaje('registroSection', 'error', resultado.error || 'Error al crear usuario');
+                }
+            } catch (e) {
+                mostrarMensaje('registroSection', 'error', 'Error de conexión: ' + e.message);
+            }
+        }
+        
+        // GUARDAR DATO
+        async function guardarDato() {
+            const contenido = document.getElementById('contenido').value;
+            
+            if (!contenido.trim()) {
+                mostrarMensaje('guardarTab', 'error', 'Escribe algo para guardar');
+                return;
+            }
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        accion: 'guardar',
+                        usuario: usuarioActual,
+                        clave: claveActual,
+                        contenido: contenido
+                    })
+                });
+                
+                const resultado = await response.json();
+                
+                if (resultado.success) {
+                    mostrarMensaje('guardarTab', 'exito', 'Guardado con éxito ✓');
+                    document.getElementById('contenido').value = '';
+                    setTimeout(() => cargarHistorial(), 1000);
+                } else {
+                    mostrarMensaje('guardarTab', 'error', resultado.error);
+                }
+            } catch (e) {
+                mostrarMensaje('guardarTab', 'error', 'Error: ' + e.message);
+            }
+        }
+        
+        // CARGAR HISTORIAL
+        async function cargarHistorial() {
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        accion: 'obtenerDatos',
+                        usuario: usuarioActual,
+                        clave: claveActual
+                    })
+                });
+                
+                const datos = await response.json();
+                
+                let html = '';
+                if (datos.length === 0) {
+                    html = '<p style="text-align: center; color: #999;">No hay datos guardados</p>';
+                } else {
+                    datos.reverse().forEach(d => {
+                        const fecha = new Date(d.fecha).toLocaleString('es-CL');
+                        html += `
+                            <div class="datos-item">
+                                <strong>${d.contenido.substring(0, 50)}${d.contenido.length > 50 ? '...' : ''}</strong>
+                                <small>${fecha}</small>
+                            </div>
+                        `;
+                    });
+                }
+                
+                document.getElementById('historialLista').innerHTML = html;
+            } catch (e) {
+                console.error('Error cargando historial:', e);
+            }
+        }
+        
+        // UTILIDADES
+        function mostrarDashboard() {
+            document.getElementById('loginSection').classList.remove('activo');
+            document.getElementById('registroSection').classList.remove('activo');
+            document.getElementById('dashboardSection').classList.add('activo');
+        }
+        
+        function cambiarTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('activo'));
+            
+            event.target.classList.add('activo');
+            
+            if (tab === 'guardar') {
+                document.getElementById('guardarTab').classList.add('activo');
+            } else {
+                document.getElementById('historialTab').classList.add('activo');
+                cargarHistorial();
+            }
+        }
+        
+        function mostrarMensaje(seccion, tipo, texto) {
+            const elemento = document.querySelector(`#${seccion} .mensaje`);
+            elemento.textContent = texto;
+            elemento.className = `mensaje ${tipo}`;
+            setTimeout(() => {
+                elemento.className = 'mensaje';
+            }, 4000);
+        }
+        
+        function logout() {
+            usuarioActual = null;
+            claveActual = null;
+            document.getElementById('loginSection').classList.add('activo');
+            document.getElementById('dashboardSection').classList.remove('activo');
+            document.getElementById('usuarioLogin').value = '';
+            document.getElementById('claveLogin').value = '';
+        }
+    </script>
+</body>
+</html>
