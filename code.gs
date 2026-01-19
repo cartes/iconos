@@ -1,162 +1,280 @@
-// code.gs (Google Apps Script)
+// ==================== HITO 1: GOOGLE APPS SCRIPT ====================
+// Reemplaza TODO el contenido de code.gs con esto
 
-// Función para crear credenciales (ejecuta una sola vez)
-function crearUsuario(usuario, clave) {
-  const hash = Utilities.computeDigest(
-    Utilities.DigestAlgorithm.SHA_256, 
-    clave
-  );
-  
-  const usuarios = obtenerUsuarios();
-  usuarios.push({
-    usuario: usuario,
-    hash: Utilities.base64Encode(hash),
-    fechaCreacion: new Date()
-  });
-  
-  guardarUsuarios(usuarios);
-  return { success: true, mensaje: "Usuario creado" };
+// ==================== VARIABLES GLOBALES ====================
+const FOLDER_ID = DriveApp.getRootFolder();
+
+// ==================== FUNCIONES DE UTILIDAD ====================
+
+function obtenerArchivo(nombreArchivo, contenidoDefault = {}) {
+  try {
+    const file = FOLDER_ID.getFilesByName(nombreArchivo).next();
+    const contenido = file.getBlob().getDataAsString();
+    return JSON.parse(contenido);
+  } catch (e) {
+    // Archivo no existe, crear nuevo
+    const contenidoJSON = typeof contenidoDefault === 'string' ? contenidoDefault : JSON.stringify(contenidoDefault);
+    FOLDER_ID.createFile(nombreArchivo, contenidoJSON, 'application/json');
+    return contenidoDefault;
+  }
 }
 
-// Verificar login
-function verificarLogin(usuario, clave) {
-  const usuarios = obtenerUsuarios();
-  const user = usuarios.find(u => u.usuario === usuario);
+function guardarArchivo(nombreArchivo, contenido) {
+  try {
+    const file = FOLDER_ID.getFilesByName(nombreArchivo).next();
+    file.setContent(JSON.stringify(contenido, null, 2));
+  } catch (e) {
+    FOLDER_ID.createFile(nombreArchivo, JSON.stringify(contenido, null, 2), 'application/json');
+  }
+}
+
+// ==================== AUTENTICACIÓN ====================
+
+function verificarAdmin(email, clave) {
+  const usuarios = obtenerArchivo('usuarios.json', {});
+  const user = usuarios[email];
   
   if (!user) return { success: false, error: "Usuario no existe" };
   
   const hash = Utilities.computeDigest(
-    Utilities.DigestAlgorithm.SHA_256, 
+    Utilities.DigestAlgorithm.SHA_256,
     clave
   );
   
   const hashEncoded = Utilities.base64Encode(hash);
   
-  if (hashEncoded === user.hash) {
-    return { success: true, usuario: usuario };
+  if (hashEncoded !== user.hash) {
+    return { success: false, error: "Contraseña incorrecta" };
   }
   
-  return { success: false, error: "Contraseña incorrecta" };
+  if (user.rol !== 'admin') {
+    return { success: false, error: "No tienes permisos de administrador" };
+  }
+  
+  return { success: true, usuario: user };
 }
 
-// Guardar datos cifrados
-function guardarDatoCifrado(usuario, contenido, clave) {
-  // Verificar que está autenticado
-  const login = verificarLogin(usuario, clave);
-  if (!login.success) return login;
+// ==================== GESTIÓN DE USUARIOS ====================
+
+function crearUsuario(emailAdmin, claveAdmin, nuevoEmail, nuevoNombre, nuevaClave, empresa, esAdmin) {
+  // Verificar que quien lo hace es admin
+  const adminCheck = verificarAdmin(emailAdmin, claveAdmin);
+  if (!adminCheck.success) return adminCheck;
   
-  // Cifrar contenido
-  const datoCifrado = Utilities.base64Encode(
-    Utilities.computeDigest(
-      Utilities.DigestAlgorithm.SHA_256,
-      contenido
-    ).toString()
+  const usuarios = obtenerArchivo('usuarios.json', {});
+  
+  // Verificar que no exista
+  if (usuarios[nuevoEmail]) {
+    return { success: false, error: "El usuario ya existe" };
+  }
+  
+  // Crear hash de la contraseña
+  const hash = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    nuevaClave
   );
   
-  // Obtener datos existentes
-  let datos = obtenerDatos();
+  // Agregar usuario
+  usuarios[nuevoEmail] = {
+    hash: Utilities.base64Encode(hash),
+    nombre: nuevoNombre,
+    rol: esAdmin ? 'admin' : 'usuario',
+    empresa: empresa || null,
+    fechaCreacion: new Date().toISOString(),
+    activo: true
+  };
   
-  // Agregar nuevo registro
-  datos.push({
-    id: Utilities.getUuid(),
-    usuario: usuario,
-    contenido: contenido, // Guardar también en texto
-    cifrado: datoCifrado,
-    fecha: new Date().toISOString()
-  });
+  guardarArchivo('usuarios.json', usuarios);
   
-  guardarDatos(datos);
-  return { success: true, mensaje: "Dato guardado" };
+  return { 
+    success: true, 
+    mensaje: `Usuario ${nuevoNombre} creado correctamente`,
+    email: nuevoEmail
+  };
 }
 
-// Obtener todos mis datos
-function obtenerMisDatos(usuario, clave) {
-  const login = verificarLogin(usuario, clave);
-  if (!login.success) return login;
+function listarUsuarios(email, clave) {
+  // Verificar que quien lo hace es admin
+  const adminCheck = verificarAdmin(email, clave);
+  if (!adminCheck.success) return adminCheck;
   
-  let datos = obtenerDatos();
-  return datos.filter(d => d.usuario === usuario);
+  const usuarios = obtenerArchivo('usuarios.json', {});
+  
+  // Convertir a array
+  const usuariosArray = Object.keys(usuarios).map(email => ({
+    email: email,
+    nombre: usuarios[email].nombre,
+    rol: usuarios[email].rol,
+    empresa: usuarios[email].empresa,
+    fechaCreacion: usuarios[email].fechaCreacion,
+    activo: usuarios[email].activo
+  }));
+  
+  return usuariosArray;
 }
 
-// Funciones auxiliares
-function obtenerUsuarios() {
-  const folder = DriveApp.getRootFolder();
-  let file;
+function editarEmpresaUsuario(emailAdmin, claveAdmin, usuarioTarget, nuevaEmpresa) {
+  // Verificar que quien lo hace es admin
+  const adminCheck = verificarAdmin(emailAdmin, claveAdmin);
+  if (!adminCheck.success) return adminCheck;
   
-  try {
-    file = folder.getFilesByName('usuarios.json').next();
-  } catch (e) {
-    // Crear archivo si no existe
-    file = folder.createFile('usuarios.json', JSON.stringify([]), 'application/json');
-    return [];
+  const usuarios = obtenerArchivo('usuarios.json', {});
+  
+  if (!usuarios[usuarioTarget]) {
+    return { success: false, error: "Usuario no encontrado" };
   }
   
-  return JSON.parse(file.getBlob().getDataAsString());
-}
-
-function guardarUsuarios(usuarios) {
-  const folder = DriveApp.getRootFolder();
-  let file;
+  // Actualizar empresa
+  usuarios[usuarioTarget].empresa = nuevaEmpresa;
+  guardarArchivo('usuarios.json', usuarios);
   
-  try {
-    file = folder.getFilesByName('usuarios.json').next();
-    file.setContent(JSON.stringify(usuarios, null, 2));
-  } catch (e) {
-    folder.createFile('usuarios.json', JSON.stringify(usuarios, null, 2), 'application/json');
-  }
+  return { 
+    success: true,
+    mensaje: `Empresa de ${usuarioTarget} actualizada a ${nuevaEmpresa}`
+  };
 }
 
-function obtenerDatos() {
-  const folder = DriveApp.getRootFolder();
-  let file;
+function eliminarUsuario(emailAdmin, claveAdmin, usuarioTarget) {
+  // Verificar que quien lo hace es admin
+  const adminCheck = verificarAdmin(emailAdmin, claveAdmin);
+  if (!adminCheck.success) return adminCheck;
   
-  try {
-    file = folder.getFilesByName('datos.json').next();
-    return JSON.parse(file.getBlob().getDataAsString());
-  } catch (e) {
-    return [];
-  }
-}
-
-function guardarDatos(datos) {
-  const folder = DriveApp.getRootFolder();
-  let file;
+  const usuarios = obtenerArchivo('usuarios.json', {});
   
-  try {
-    file = folder.getFilesByName('datos.json').next();
-    file.setContent(JSON.stringify(datos, null, 2));
-  } catch (e) {
-    folder.createFile('datos.json', JSON.stringify(datos, null, 2), 'application/json');
+  if (!usuarios[usuarioTarget]) {
+    return { success: false, error: "Usuario no encontrado" };
   }
+  
+  // No permitir eliminar a sí mismo
+  if (emailAdmin === usuarioTarget) {
+    return { success: false, error: "No puedes eliminar tu propia cuenta" };
+  }
+  
+  delete usuarios[usuarioTarget];
+  guardarArchivo('usuarios.json', usuarios);
+  
+  return { 
+    success: true,
+    mensaje: `Usuario ${usuarioTarget} eliminado`
+  };
 }
 
-// Exponer como API Web
+// ==================== AUTENTICACIÓN DE USUARIO NORMAL ====================
+
+function verificarLogin(email, clave) {
+  const usuarios = obtenerArchivo('usuarios.json', {});
+  const user = usuarios[email];
+  
+  if (!user) return { success: false, error: "Usuario no existe" };
+  
+  const hash = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    clave
+  );
+  
+  const hashEncoded = Utilities.base64Encode(hash);
+  
+  if (hashEncoded !== user.hash) {
+    return { success: false, error: "Contraseña incorrecta" };
+  }
+  
+  return { 
+    success: true,
+    usuario: email,
+    nombre: user.nombre,
+    rol: user.rol,
+    empresa: user.empresa
+  };
+}
+
+// ==================== API WEB ====================
+
 function doPost(e) {
-  const params = JSON.parse(e.postData.contents);
-  
-  switch (params.accion) {
-    case 'crearUsuario':
-      return ContentService.createTextOutput(JSON.stringify(
-        crearUsuario(params.usuario, params.clave)
-      )).setMimeType(ContentService.MimeType.JSON);
+  try {
+    const params = JSON.parse(e.postData.contents);
+    
+    let resultado;
+    
+    switch (params.accion) {
+      case 'login':
+        resultado = verificarLogin(params.email, params.clave);
+        break;
+        
+      case 'crearUsuario':
+        resultado = crearUsuario(
+          params.email,
+          params.clave,
+          params.nuevoEmail,
+          params.nuevoNombre,
+          params.nuevaClave,
+          params.empresa,
+          params.esAdmin
+        );
+        break;
+        
+      case 'listarUsuarios':
+        resultado = listarUsuarios(params.email, params.clave);
+        break;
+        
+      case 'editarEmpresaUsuario':
+        resultado = editarEmpresaUsuario(
+          params.email,
+          params.clave,
+          params.usuarioTarget,
+          params.nuevaEmpresa
+        );
+        break;
+        
+      case 'eliminarUsuario':
+        resultado = eliminarUsuario(
+          params.email,
+          params.clave,
+          params.usuarioTarget
+        );
+        break;
+        
+      default:
+        resultado = { success: false, error: "Acción no reconocida" };
+    }
+    
+    return ContentService
+      .createTextOutput(JSON.stringify(resultado))
+      .setMimeType(ContentService.MimeType.JSON);
       
-    case 'login':
-      return ContentService.createTextOutput(JSON.stringify(
-        verificarLogin(params.usuario, params.clave)
-      )).setMimeType(ContentService.MimeType.JSON);
-      
-    case 'guardar':
-      return ContentService.createTextOutput(JSON.stringify(
-        guardarDatoCifrado(params.usuario, params.contenido, params.clave)
-      )).setMimeType(ContentService.MimeType.JSON);
-      
-    case 'obtenerDatos':
-      return ContentService.createTextOutput(JSON.stringify(
-        obtenerMisDatos(params.usuario, params.clave)
-      )).setMimeType(ContentService.MimeType.JSON);
-      
-    default:
-      return ContentService.createTextOutput(JSON.stringify({ error: "Acción no válida" }))
-        .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        success: false,
+        error: "Error del servidor: " + error.toString()
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// ==================== CREAR ADMIN POR DEFECTO ====================
+// Ejecuta esto UNA SOLA VEZ en la consola
+function crearAdminPorDefecto() {
+  const usuarios = obtenerArchivo('usuarios.json', {});
+  
+  if (usuarios['admin@system.com']) {
+    return "Admin ya existe";
+  }
+  
+  const hash = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    'admin123'  // ⚠️ CAMBIA ESTO A UNA CONTRASEÑA SEGURA
+  );
+  
+  usuarios['admin@system.com'] = {
+    hash: Utilities.base64Encode(hash),
+    nombre: 'Administrador',
+    rol: 'admin',
+    empresa: null,
+    fechaCreacion: new Date().toISOString(),
+    activo: true
+  };
+  
+  guardarArchivo('usuarios.json', usuarios);
+  
+  return "Admin creado: admin@system.com / admin123";
 }
