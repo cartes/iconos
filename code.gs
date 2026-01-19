@@ -1,6 +1,3 @@
-// ==================== HITO 1: GOOGLE APPS SCRIPT ====================
-// Reemplaza TODO el contenido de code.gs con esto
-
 // ==================== VARIABLES GLOBALES ====================
 const FOLDER_ID = DriveApp.getRootFolder();
 
@@ -26,6 +23,69 @@ function guardarArchivo(nombreArchivo, contenido) {
   } catch (e) {
     FOLDER_ID.createFile(nombreArchivo, JSON.stringify(contenido, null, 2), 'application/json');
   }
+}
+
+// ==================== BOOTSTRAP SEGURO ====================
+
+function verificarSiHayAdmin() {
+  const usuarios = obtenerArchivo('usuarios.json', {});
+  
+  // Contar admins
+  const admins = Object.values(usuarios).filter(u => u.rol === 'admin');
+  
+  return admins.length > 0;
+}
+
+function crearPrimerAdmin(email, nombre, clave) {
+  const usuarios = obtenerArchivo('usuarios.json', {});
+  
+  // Verificar que NO haya admin
+  if (verificarSiHayAdmin()) {
+    return { success: false, error: "Ya existe un administrador. No puedes crear otro." };
+  }
+  
+  // Verificar que email sea válido
+  if (!email || !email.includes('@')) {
+    return { success: false, error: "Email inválido" };
+  }
+  
+  // Verificar que nombre y clave no sean vacías
+  if (!nombre || nombre.length < 3) {
+    return { success: false, error: "El nombre debe tener al menos 3 caracteres" };
+  }
+  
+  if (!clave || clave.length < 8) {
+    return { success: false, error: "La contraseña debe tener al menos 8 caracteres" };
+  }
+  
+  // Verificar que no exista el usuario
+  if (usuarios[email]) {
+    return { success: false, error: "El usuario ya existe" };
+  }
+  
+  // Crear hash
+  const hash = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    clave
+  );
+  
+  // Crear admin
+  usuarios[email] = {
+    hash: Utilities.base64Encode(hash),
+    nombre: nombre,
+    rol: 'admin',
+    empresa: null,
+    fechaCreacion: new Date().toISOString(),
+    activo: true
+  };
+  
+  guardarArchivo('usuarios.json', usuarios);
+  
+  return {
+    success: true,
+    mensaje: `Admin ${nombre} creado correctamente`,
+    email: email
+  };
 }
 
 // ==================== AUTENTICACIÓN ====================
@@ -66,6 +126,15 @@ function crearUsuario(emailAdmin, claveAdmin, nuevoEmail, nuevoNombre, nuevaClav
   // Verificar que no exista
   if (usuarios[nuevoEmail]) {
     return { success: false, error: "El usuario ya existe" };
+  }
+  
+  // Validaciones
+  if (!nuevoNombre || nuevoNombre.length < 3) {
+    return { success: false, error: "El nombre debe tener al menos 3 caracteres" };
+  }
+  
+  if (!nuevaClave || nuevaClave.length < 8) {
+    return { success: false, error: "La contraseña debe tener al menos 8 caracteres" };
   }
   
   // Crear hash de la contraseña
@@ -187,6 +256,17 @@ function verificarLogin(email, clave) {
   };
 }
 
+// ==================== VERIFICAR ESTADO DEL SISTEMA ====================
+
+function verificarEstadoSistema() {
+  const hayAdmin = verificarSiHayAdmin();
+  
+  return {
+    hayAdmin: hayAdmin,
+    necesitaBootstrap: !hayAdmin
+  };
+}
+
 // ==================== API WEB ====================
 
 function doPost(e) {
@@ -196,10 +276,25 @@ function doPost(e) {
     let resultado;
     
     switch (params.accion) {
+      // Bootstrap seguro
+      case 'verificarEstado':
+        resultado = verificarEstadoSistema();
+        break;
+        
+      case 'crearPrimerAdmin':
+        resultado = crearPrimerAdmin(
+          params.email,
+          params.nombre,
+          params.clave
+        );
+        break;
+      
+      // Login
       case 'login':
         resultado = verificarLogin(params.email, params.clave);
         break;
         
+      // Gestión de usuarios (admin)
       case 'crearUsuario':
         resultado = crearUsuario(
           params.email,
@@ -249,32 +344,4 @@ function doPost(e) {
       }))
       .setMimeType(ContentService.MimeType.JSON);
   }
-}
-
-// ==================== CREAR ADMIN POR DEFECTO ====================
-// Ejecuta esto UNA SOLA VEZ en la consola
-function crearAdminPorDefecto() {
-  const usuarios = obtenerArchivo('usuarios.json', {});
-  
-  if (usuarios['admin@system.com']) {
-    return "Admin ya existe";
-  }
-  
-  const hash = Utilities.computeDigest(
-    Utilities.DigestAlgorithm.SHA_256,
-    'admin123'  // ⚠️ CAMBIA ESTO A UNA CONTRASEÑA SEGURA
-  );
-  
-  usuarios['admin@system.com'] = {
-    hash: Utilities.base64Encode(hash),
-    nombre: 'Administrador',
-    rol: 'admin',
-    empresa: null,
-    fechaCreacion: new Date().toISOString(),
-    activo: true
-  };
-  
-  guardarArchivo('usuarios.json', usuarios);
-  
-  return "Admin creado: admin@system.com / admin123";
 }
