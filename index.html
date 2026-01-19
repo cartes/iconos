@@ -3,9 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Seguro con Drive</title>
+    <title>Sistema de Gestión - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -15,437 +21,451 @@
             align-items: center;
             padding: 20px;
         }
-        
+
         .container {
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             width: 100%;
-            max-width: 500px;
-            padding: 40px;
+            max-width: 450px;
+            padding: 50px;
         }
-        
-        h2 {
-            color: #333;
-            margin-bottom: 30px;
+
+        .logo {
             text-align: center;
+            margin-bottom: 40px;
         }
-        
+
+        .logo i {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            color: #999;
+            font-size: 14px;
+        }
+
         .form-group {
             margin-bottom: 20px;
         }
-        
-        label {
+
+        .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: #555;
-            font-weight: 500;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
         }
-        
-        input, textarea {
+
+        .form-group input {
             width: 100%;
-            padding: 12px;
+            padding: 12px 15px;
             border: 2px solid #e0e0e0;
-            border-radius: 5px;
+            border-radius: 8px;
             font-size: 14px;
             font-family: inherit;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
         }
-        
-        input:focus, textarea:focus {
+
+        .form-group input:focus {
             outline: none;
             border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        
-        button {
+
+        .btn {
             width: 100%;
-            padding: 12px;
-            background: #667eea;
+            padding: 13px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s;
-            margin-top: 10px;
-        }
-        
-        button:hover {
-            background: #764ba2;
-        }
-        
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        
-        .section {
-            display: none;
-        }
-        
-        .section.activo {
-            display: block;
-        }
-        
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-        }
-        
-        .tab-btn {
-            flex: 1;
-            padding: 10px;
-            background: #f0f0f0;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 500;
             transition: all 0.3s;
+            margin-top: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        
-        .tab-btn.activo {
-            background: #667eea;
-            color: white;
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
-        
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .mensaje {
-            padding: 15px;
-            border-radius: 5px;
+            padding: 12px 15px;
+            border-radius: 8px;
             margin-bottom: 20px;
             display: none;
+            font-size: 14px;
         }
-        
+
         .mensaje.exito {
             background: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
             display: block;
         }
-        
+
         .mensaje.error {
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
             display: block;
         }
-        
-        .datos-item {
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .datos-item small {
-            color: #999;
+
+        .mensaje.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
             display: block;
-            margin-top: 5px;
         }
-        
-        .logout-btn {
-            background: #dc3545;
-            margin-top: 20px;
+
+        .section {
+            display: none;
         }
-        
-        .logout-btn:hover {
-            background: #c82333;
+
+        .section.activo {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bootstrap-warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .bootstrap-warning strong {
+            display: block;
+            color: #856404;
+            margin-bottom: 5px;
+        }
+
+        .bootstrap-warning p {
+            color: #856404;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            .logo h1 {
+                font-size: 24px;
+            }
+
+            .logo i {
+                font-size: 40px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- LOGIN -->
+        <div class="logo">
+            <i class="fas fa-shield-alt"></i>
+            <h1>Sistema de Gestión</h1>
+            <p>Administración de Usuarios e Iconos</p>
+        </div>
+
+        <!-- PANTALLA DE LOGIN -->
         <div id="loginSection" class="section activo">
-            <h2>🔐 Login</h2>
             <div id="mensajeLogin" class="mensaje"></div>
-            
-            <div class="form-group">
-                <label>Usuario:</label>
-                <input type="text" id="usuarioLogin" placeholder="Tu usuario">
-            </div>
-            
-            <div class="form-group">
-                <label>Contraseña:</label>
-                <input type="password" id="claveLogin" placeholder="Tu contraseña">
-            </div>
-            
-            <button onclick="login()">Ingresar</button>
-            
-            <p style="text-align: center; margin-top: 20px; color: #666;">
-                ¿No tienes cuenta? 
-                <a href="#" onclick="mostrarRegistro(); return false;" style="color: #667eea; cursor: pointer;">
-                    Crear una
-                </a>
-            </p>
-        </div>
-        
-        <!-- REGISTRO -->
-        <div id="registroSection" class="section">
-            <h2>📝 Registrarse</h2>
-            <div id="mensajeRegistro" class="mensaje"></div>
-            
-            <div class="form-group">
-                <label>Usuario:</label>
-                <input type="text" id="usuarioRegistro" placeholder="Elige un usuario">
-            </div>
-            
-            <div class="form-group">
-                <label>Contraseña:</label>
-                <input type="password" id="claveRegistro" placeholder="Contraseña fuerte">
-            </div>
-            
-            <div class="form-group">
-                <label>Confirmar:</label>
-                <input type="password" id="claveConfirm" placeholder="Repite la contraseña">
-            </div>
-            
-            <button onclick="registrarse()">Crear Cuenta</button>
-            
-            <p style="text-align: center; margin-top: 20px; color: #666;">
-                ¿Ya tienes cuenta? 
-                <a href="#" onclick="mostrarLogin(); return false;" style="color: #667eea; cursor: pointer;">
-                    Ingresar
-                </a>
-            </p>
-        </div>
-        
-        <!-- DASHBOARD -->
-        <div id="dashboardSection" class="section">
-            <h2>📊 Dashboard</h2>
-            
-            <div class="tabs">
-                <button class="tab-btn activo" onclick="cambiarTab('guardar')">Guardar</button>
-                <button class="tab-btn" onclick="cambiarTab('historial')">Historial</button>
-            </div>
-            
-            <!-- Guardar datos -->
-            <div id="guardarTab" class="section activo">
-                <div id="mensajeGuardar" class="mensaje"></div>
-                
+
+            <form onsubmit="handleLogin(event)">
                 <div class="form-group">
-                    <label>Contenido a guardar:</label>
-                    <textarea id="contenido" placeholder="Escribe lo que quieres guardar..." rows="6"></textarea>
+                    <label for="email">Email:</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        placeholder="tu@email.com"
+                        required
+                    >
                 </div>
-                
-                <button onclick="guardarDato()">💾 Guardar Cifrado</button>
+
+                <div class="form-group">
+                    <label for="clave">Contraseña:</label>
+                    <input 
+                        type="password" 
+                        id="clave" 
+                        placeholder="Tu contraseña"
+                        required
+                    >
+                </div>
+
+                <button class="btn" type="submit" id="btnLogin">
+                    <span id="btnText">Ingresar</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- PANTALLA DE BOOTSTRAP (Crear primer admin) -->
+        <div id="bootstrapSection" class="section">
+            <div class="bootstrap-warning">
+                <strong>⚠️ Primera instalación</strong>
+                <p>No hay administrador creado. Debes crear el primer administrador para continuar.</p>
             </div>
-            
-            <!-- Historial -->
-            <div id="historialTab" class="section">
-                <div id="historialLista"></div>
-            </div>
-            
-            <button class="logout-btn" onclick="logout()">🚪 Cerrar Sesión</button>
+
+            <div id="mensajeBootstrap" class="mensaje"></div>
+
+            <form onsubmit="handleBootstrap(event)">
+                <div class="form-group">
+                    <label for="bootstrapNombre">Tu Nombre Completo:</label>
+                    <input 
+                        type="text" 
+                        id="bootstrapNombre" 
+                        placeholder="Juan Pérez"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="bootstrapEmail">Email (usuario admin):</label>
+                    <input 
+                        type="email" 
+                        id="bootstrapEmail" 
+                        placeholder="admin@tuempresa.com"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="bootstrapClave">Contraseña Segura (mín. 8 caracteres):</label>
+                    <input 
+                        type="password" 
+                        id="bootstrapClave" 
+                        placeholder="Contraseña segura"
+                        minlength="8"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="bootstrapClaveConfirm">Confirmar Contraseña:</label>
+                    <input 
+                        type="password" 
+                        id="bootstrapClaveConfirm" 
+                        placeholder="Repite la contraseña"
+                        minlength="8"
+                        required
+                    >
+                </div>
+
+                <button class="btn" type="submit" id="btnBootstrap">
+                    <span id="btnBootstrapText">Crear Administrador</span>
+                </button>
+            </form>
         </div>
     </div>
 
     <script>
-        // ⚠️ REEMPLAZA ESTO CON TU URL DE GOOGLE APPS SCRIPT
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzvAqH3GH_zv7YcSEhXVKjlSJe3XivIZZYrEC7V7Bq1eRkYiUmWz-gnz1lEwH7bEUDT/exec';
-        
-        let usuarioActual = null;
-        let claveActual = null;
-        
-        // MOSTRAR/OCULTAR SECCIONES
-        function mostrarLogin() {
-            document.getElementById('loginSection').classList.add('activo');
-            document.getElementById('registroSection').classList.remove('activo');
+        // ⚠️ REEMPLAZA CON TU URL
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+
+        // Verificar estado al cargar
+        window.addEventListener('load', async () => {
+            await verificarEstadoSistema();
+        });
+
+        // ==================== VERIFICAR ESTADO ====================
+        async function verificarEstadoSistema() {
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        accion: 'verificarEstado'
+                    })
+                });
+
+                const estado = await response.json();
+
+                if (estado.necesitaBootstrap) {
+                    // Mostrar pantalla de bootstrap
+                    document.getElementById('loginSection').classList.remove('activo');
+                    document.getElementById('bootstrapSection').classList.add('activo');
+                } else {
+                    // Mostrar pantalla de login
+                    document.getElementById('bootstrapSection').classList.remove('activo');
+                    document.getElementById('loginSection').classList.add('activo');
+                }
+            } catch (error) {
+                console.error('Error verificando estado:', error);
+                mostrarMensajeLogin('error', 'Error de conexión');
+            }
         }
-        
-        function mostrarRegistro() {
-            document.getElementById('registroSection').classList.add('activo');
-            document.getElementById('loginSection').classList.remove('activo');
-        }
-        
-        // LOGIN
-        async function login() {
-            const usuario = document.getElementById('usuarioLogin').value;
-            const clave = document.getElementById('claveLogin').value;
-            
-            if (!usuario || !clave) {
-                mostrarMensaje('loginSection', 'error', 'Completa todos los campos');
+
+        // ==================== BOOTSTRAP ====================
+        async function handleBootstrap(event) {
+            event.preventDefault();
+
+            const nombre = document.getElementById('bootstrapNombre').value;
+            const email = document.getElementById('bootstrapEmail').value;
+            const clave = document.getElementById('bootstrapClave').value;
+            const claveConfirm = document.getElementById('bootstrapClaveConfirm').value;
+            const btnBootstrap = document.getElementById('btnBootstrap');
+            const btnBootstrapText = document.getElementById('btnBootstrapText');
+
+            // Validar que las contraseñas coincidan
+            if (clave !== claveConfirm) {
+                mostrarMensajeBootstrap('error', 'Las contraseñas no coinciden');
                 return;
             }
-            
+
+            // Mostrar loading
+            btnBootstrap.disabled = true;
+            btnBootstrapText.innerHTML = '<span class="loading-spinner"></span> Creando...';
+
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        accion: 'crearPrimerAdmin',
+                        email: email,
+                        nombre: nombre,
+                        clave: clave
+                    })
+                });
+
+                const resultado = await response.json();
+
+                if (resultado.success) {
+                    mostrarMensajeBootstrap('exito', '✓ Administrador creado exitosamente');
+                    
+                    setTimeout(() => {
+                        mostrarMensajeBootstrap('info', 'Ahora puedes iniciar sesión con tus credenciales');
+                        
+                        // Mostrar login
+                        document.getElementById('bootstrapSection').classList.remove('activo');
+                        document.getElementById('loginSection').classList.add('activo');
+                        
+                        // Llenar campos
+                        document.getElementById('email').value = email;
+                        document.getElementById('clave').value = '';
+                    }, 2000);
+                } else {
+                    mostrarMensajeBootstrap('error', resultado.error || 'Error al crear administrador');
+                    btnBootstrap.disabled = false;
+                    btnBootstrapText.textContent = 'Crear Administrador';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarMensajeBootstrap('error', 'Error de conexión: ' + error.message);
+                btnBootstrap.disabled = false;
+                btnBootstrapText.textContent = 'Crear Administrador';
+            }
+        }
+
+        // ==================== LOGIN ====================
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const clave = document.getElementById('clave').value;
+            const btnLogin = document.getElementById('btnLogin');
+            const btnText = document.getElementById('btnText');
+
+            // Mostrar loading
+            btnLogin.disabled = true;
+            btnText.innerHTML = '<span class="loading-spinner"></span> Verificando...';
+
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({
                         accion: 'login',
-                        usuario: usuario,
+                        email: email,
                         clave: clave
                     })
                 });
-                
+
                 const resultado = await response.json();
-                
+
                 if (resultado.success) {
-                    usuarioActual = usuario;
-                    claveActual = clave;
-                    mostrarDashboard();
-                    cargarHistorial();
+                    // Guardar en sessionStorage
+                    sessionStorage.setItem('usuarioActual', email);
+                    sessionStorage.setItem('claveActual', clave);
+                    sessionStorage.setItem('nombreUsuario', resultado.nombre);
+                    sessionStorage.setItem('rolUsuario', resultado.rol);
+                    sessionStorage.setItem('empresaUsuario', resultado.empresa);
+
+                    mostrarMensajeLogin('exito', '✓ Ingreso correcto');
+
+                    // Redirigir según rol
+                    setTimeout(() => {
+                        if (resultado.rol === 'admin') {
+                            sessionStorage.setItem('usuarioAdmin', email);
+                            sessionStorage.setItem('claveAdmin', clave);
+                            window.location.href = 'admin.html';
+                        } else {
+                            window.location.href = 'usuario.html';
+                        }
+                    }, 1000);
                 } else {
-                    mostrarMensaje('loginSection', 'error', resultado.error);
+                    mostrarMensajeLogin('error', resultado.error || 'Error al ingresar');
+                    btnLogin.disabled = false;
+                    btnText.textContent = 'Ingresar';
                 }
-            } catch (e) {
-                mostrarMensaje('loginSection', 'error', 'Error de conexión: ' + e.message);
-                console.error('Error:', e);
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarMensajeLogin('error', 'Error de conexión: ' + error.message);
+                btnLogin.disabled = false;
+                btnText.textContent = 'Ingresar';
             }
         }
-        
-        // REGISTRO
-        async function registrarse() {
-            const usuario = document.getElementById('usuarioRegistro').value;
-            const clave = document.getElementById('claveRegistro').value;
-            const confirm = document.getElementById('claveConfirm').value;
-            
-            if (!usuario || !clave || !confirm) {
-                mostrarMensaje('registroSection', 'error', 'Completa todos los campos');
-                return;
-            }
-            
-            if (clave !== confirm) {
-                mostrarMensaje('registroSection', 'error', 'Las contraseñas no coinciden');
-                return;
-            }
-            
-            if (clave.length < 6) {
-                mostrarMensaje('registroSection', 'error', 'Contraseña muy corta (mínimo 6 caracteres)');
-                return;
-            }
-            
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        accion: 'crearUsuario',
-                        usuario: usuario,
-                        clave: clave
-                    })
-                });
-                
-                const resultado = await response.json();
-                
-                if (resultado.success) {
-                    mostrarMensaje('registroSection', 'exito', 'Cuenta creada! Inicia sesión');
-                    setTimeout(() => mostrarLogin(), 2000);
-                } else {
-                    mostrarMensaje('registroSection', 'error', resultado.error || 'Error al crear usuario');
-                }
-            } catch (e) {
-                mostrarMensaje('registroSection', 'error', 'Error de conexión: ' + e.message);
-            }
-        }
-        
-        // GUARDAR DATO
-        async function guardarDato() {
-            const contenido = document.getElementById('contenido').value;
-            
-            if (!contenido.trim()) {
-                mostrarMensaje('guardarTab', 'error', 'Escribe algo para guardar');
-                return;
-            }
-            
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        accion: 'guardar',
-                        usuario: usuarioActual,
-                        clave: claveActual,
-                        contenido: contenido
-                    })
-                });
-                
-                const resultado = await response.json();
-                
-                if (resultado.success) {
-                    mostrarMensaje('guardarTab', 'exito', 'Guardado con éxito ✓');
-                    document.getElementById('contenido').value = '';
-                    setTimeout(() => cargarHistorial(), 1000);
-                } else {
-                    mostrarMensaje('guardarTab', 'error', resultado.error);
-                }
-            } catch (e) {
-                mostrarMensaje('guardarTab', 'error', 'Error: ' + e.message);
-            }
-        }
-        
-        // CARGAR HISTORIAL
-        async function cargarHistorial() {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        accion: 'obtenerDatos',
-                        usuario: usuarioActual,
-                        clave: claveActual
-                    })
-                });
-                
-                const datos = await response.json();
-                
-                let html = '';
-                if (datos.length === 0) {
-                    html = '<p style="text-align: center; color: #999;">No hay datos guardados</p>';
-                } else {
-                    datos.reverse().forEach(d => {
-                        const fecha = new Date(d.fecha).toLocaleString('es-CL');
-                        html += `
-                            <div class="datos-item">
-                                <strong>${d.contenido.substring(0, 50)}${d.contenido.length > 50 ? '...' : ''}</strong>
-                                <small>${fecha}</small>
-                            </div>
-                        `;
-                    });
-                }
-                
-                document.getElementById('historialLista').innerHTML = html;
-            } catch (e) {
-                console.error('Error cargando historial:', e);
-            }
-        }
-        
-        // UTILIDADES
-        function mostrarDashboard() {
-            document.getElementById('loginSection').classList.remove('activo');
-            document.getElementById('registroSection').classList.remove('activo');
-            document.getElementById('dashboardSection').classList.add('activo');
-        }
-        
-        function cambiarTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('activo'));
-            
-            event.target.classList.add('activo');
-            
-            if (tab === 'guardar') {
-                document.getElementById('guardarTab').classList.add('activo');
-            } else {
-                document.getElementById('historialTab').classList.add('activo');
-                cargarHistorial();
-            }
-        }
-        
-        function mostrarMensaje(seccion, tipo, texto) {
-            const elemento = document.querySelector(`#${seccion} .mensaje`);
+
+        // ==================== UTILIDADES ====================
+        function mostrarMensajeLogin(tipo, texto) {
+            const elemento = document.getElementById('mensajeLogin');
             elemento.textContent = texto;
             elemento.className = `mensaje ${tipo}`;
-            setTimeout(() => {
-                elemento.className = 'mensaje';
-            }, 4000);
         }
-        
-        function logout() {
-            usuarioActual = null;
-            claveActual = null;
-            document.getElementById('loginSection').classList.add('activo');
-            document.getElementById('dashboardSection').classList.remove('activo');
-            document.getElementById('usuarioLogin').value = '';
-            document.getElementById('claveLogin').value = '';
+
+        function mostrarMensajeBootstrap(tipo, texto) {
+            const elemento = document.getElementById('mensajeBootstrap');
+            elemento.textContent = texto;
+            elemento.className = `mensaje ${tipo}`;
         }
     </script>
 </body>
