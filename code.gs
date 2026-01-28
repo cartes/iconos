@@ -140,6 +140,39 @@ function verificarLogin(email, clave) {
   };
 }
 
+function cambiarClave(email, claveActual, nuevaClave) {
+  const usuarios = obtenerArchivo(DB_USUARIOS, {});
+  const user = usuarios[email];
+
+  if (!user) return { success: false, error: "Usuario no existe" };
+
+  // Verificar clave actual
+  const hashActual = Utilities.base64Encode(
+    Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, claveActual),
+  );
+  if (user.hash !== hashActual) {
+    return { success: false, error: "Contraseña actual incorrecta" };
+  }
+
+  // Validar nueva clave
+  if (!nuevaClave || nuevaClave.length < 8) {
+    return {
+      success: false,
+      error: "La nueva contraseña debe tener al menos 8 caracteres",
+    };
+  }
+
+  // Actualizar
+  const nuevoHash = Utilities.base64Encode(
+    Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, nuevaClave),
+  );
+  user.hash = nuevoHash;
+
+  guardarArchivo(DB_USUARIOS, usuarios);
+
+  return { success: true, mensaje: "Contraseña actualizada correctamente" };
+}
+
 function crearPrimerAdmin(email, nombre, clave) {
   const usuarios = obtenerArchivo(DB_USUARIOS, {});
   if (verificarSiHayAdmin())
@@ -426,6 +459,9 @@ function doPost(e) {
         break;
       case "login":
         resultado = verificarLogin(params.email, params.clave);
+        break;
+      case "cambiarClave":
+        resultado = cambiarClave(params.email, params.clave, params.nuevaClave);
         break;
 
       // EMPRESAS (Admin)

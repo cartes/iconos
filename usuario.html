@@ -276,6 +276,9 @@
         <h1><i class="fas fa-layer-group"></i> Portal de Iconos</h1>
         <div class="user-info">
             <span id="userInfo">Cargando...</span>
+            <button class="btn-logout" onclick="abrirModalClave()" style="margin-right: 5px;">
+                <i class="fas fa-key"></i>
+            </button>
             <button class="btn-logout" onclick="logout()">
                 <i class="fas fa-sign-out-alt"></i>
             </button>
@@ -348,6 +351,29 @@
         </div>
     </div>
 
+    <!-- MODAL CAMBIAR CLAVE -->
+    <div id="modalClave" class="modal">
+        <div class="modal-content">
+            <h2>Cambiar Contraseña</h2>
+            <div class="form-group">
+                <label>Contraseña Actual:</label>
+                <input type="password" id="claveActualInput" placeholder="Tu contraseña actual">
+            </div>
+            <div class="form-group">
+                <label>Nueva Contraseña:</label>
+                <input type="password" id="claveNuevaInput" placeholder="Mínimo 8 caracteres" minlength="8">
+            </div>
+            <div class="form-group">
+                <label>Confirmar Nueva Contraseña:</label>
+                <input type="password" id="claveNuevaConfirmInput" placeholder="Repite la nueva contraseña">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="cerrarModales()">Cancelar</button>
+                <button class="btn-primary" onclick="cambiarClave()">Cambiar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- TOAST -->
     <div id="toast" class="toast">
         <i class="fas fa-check-circle" style="color: #2ecc71;"></i>
@@ -356,7 +382,7 @@
 
     <script>
         // ⚠️ REEMPLAZA CON TU URL
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwwDNq8q7oKY-HHc6AbxPj3uiV487PTR9olqKIgnr9hma4lo8hXyAa7qw2nKAGF3UB9/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCnfZvxSuNivunEPbw1m6sjfvgV5Bj92Pl5vaKDb6TtrhjMk5BS1dgmNKaRmxogBk5/exec';
         
         // Estado
         let usuarioActual = null;
@@ -388,6 +414,43 @@
                 window.location.href = 'index.html';
             }
         });
+
+        // ==================== CAMBIAR CLAVE ====================
+        function abrirModalClave() {
+            document.getElementById('modalClave').classList.add('activo');
+        }
+
+        async function cambiarClave() {
+            const actual = document.getElementById('claveActualInput').value;
+            const nueva = document.getElementById('claveNuevaInput').value;
+            const confirm = document.getElementById('claveNuevaConfirmInput').value;
+
+            if (!actual || !nueva || !confirm) return alert('Completa todos los campos');
+            if (nueva !== confirm) return alert('las contraseñas nuevas no coinciden');
+            if (nueva.length < 8) return alert('La contraseña debe tener al menos 8 caracteres');
+
+            const boton = document.querySelector('#modalClave .btn-primary');
+            const textoOriginal = boton.textContent;
+            boton.textContent = 'Cambiando...';
+            boton.disabled = true;
+
+            const res = await api('cambiarClave', { 
+                clave: actual, // Enviamos la clave que ingresó el usuario para validar, no la de sesion
+                nuevaClave: nueva 
+            });
+
+            if (res.success) {
+                mostrarToast('Contraseña actualizada');
+                sessionStorage.setItem('claveActual', nueva); // Actualizar sesion local
+                claveActual = nueva;
+                cerrarModales();
+            } else {
+                alert(res.error);
+            }
+
+            boton.textContent = textoOriginal;
+            boton.disabled = false;
+        }
 
         async function cargarDatos() {
             // Mostrar loading
