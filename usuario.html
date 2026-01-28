@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Iconos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f4f6f9;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0 30px;
+            height: 70px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        .header h1 { font-size: 20px; display: flex; align-items: center; gap: 10px; }
+        .user-info { display: flex; align-items: center; gap: 20px; font-size: 14px; }
+        .btn-logout {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-logout:hover { background: rgba(255,255,255,0.3); }
+
+        /* MAIN LAYOUT */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sidebar-header h3 { font-size: 14px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn-add-folder {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .btn-add-folder:hover { background: #f0f0f0; }
+        
+        .folder-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .folder-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #555;
+            transition: all 0.2s;
+            margin-bottom: 5px;
+        }
+        .folder-item:hover { background: #f8f9fa; color: #333; }
+        .folder-item.active {
+            background: #eef2ff;
+            color: #667eea;
+            font-weight: 600;
+        }
+        .folder-item i { margin-right: 10px; width: 20px; text-align: center; }
+
+        /* CONTENT AREA */
+        .content-area {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .content-header h2 { font-size: 24px; color: #333; }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+            transition: transform 0.2s;
+        }
+        .btn-primary:hover { transform: translateY(-2px); }
+
+        /* ICON GRID */
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 25px;
+            padding-bottom: 50px;
+        }
+        .icon-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s;
+            position: relative;
+            border: 1px solid transparent;
+            cursor: pointer;
+            height: 160px;
+            justify-content: center;
+        }
+        .icon-card:hover {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            transform: translateY(-5px);
+            border-color: #e0e0e0;
+        }
+        .icon-preview {
+            width: 100%;
+            height: 100px;
+            object-fit: contain;
+        }
+        .icon-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .icon-card:hover .icon-actions { opacity: 1; }
+        .btn-icon-action {
+            background: white;
+            border: 1px solid #eee;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            color: #dc3545;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .btn-icon-action:hover { background: #dc3545; color: white; }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        /* MODALS */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.activo { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 450px;
+        }
+        .modal-content h2 { margin-bottom: 20px; font-size: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;
+        }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+        .btn-cancel { background: #f0f0f0; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+            grid-column: 1/-1;
+        }
+        .empty-state i { font-size: 48px; margin-bottom: 15px; opacity: 0.5; }
+
+        /* LOADING SPINNER */
+        .loading-state {
+            grid-column: 1/-1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 50px;
+            color: #667eea;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(102, 126, 234, 0.1);
+            border-left-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-layer-group"></i> Portal de Iconos</h1>
+        <div class="user-info">
+            <span id="userInfo">Cargando...</span>
+            <button class="btn-logout" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>Carpetas</h3>
+                <button class="btn-add-folder" onclick="abrirModalCarpeta()" title="Nueva Carpeta">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            <div class="folder-list" id="folderList">
+                <!-- Dinámico -->
+            </div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="content-area">
+            <div class="content-header">
+                <h2 id="tituloSeccion">Todos los Iconos</h2>
+                <button class="btn-primary" onclick="abrirModalIcono()">
+                    <i class="fas fa-plus-circle"></i> Agregar Icono
+                </button>
+            </div>
+            
+            <div id="iconGrid" class="icon-grid">
+                <!-- Iconos aquí -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVA CARPETA -->
+    <div id="modalCarpeta" class="modal">
+        <div class="modal-content">
+            <h2>Nueva Carpeta</h2>
+            <div class="form-group">
+                <label>Nombre de la carpeta:</label>
+                <input type="text" id="nombreCarpeta" placeholder="Ej: Redes Sociales">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="cerrarModales()">Cancelar</button>
+                <button class="btn-primary" onclick="crearCarpeta()">Crear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AGREGAR ICONO -->
+    <div id="modalIcono" class="modal">
+        <div class="modal-content">
+            <h2>Agregar Icono (URL)</h2>
+            <div class="form-group">
+                <label>URL de la Imagen:</label>
+                <input type="url" id="urlIcono" placeholder="https://ejemplo.com/icono.png">
+            </div>
+            <div class="form-group">
+                <label>Carpeta:</label>
+                <select id="selectCarpetaIcono">
+                    <option value="">-- Sin Carpeta (General) --</option>
+                    <!-- Dinámico -->
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="cerrarModales()">Cancelar</button>
+                <button class="btn-primary" onclick="subirIcono()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle" style="color: #2ecc71;"></i>
+        <span>URL copiada al portapapeles</span>
+    </div>
+
+    <script>
+        // ⚠️ REEMPLAZA CON TU URL
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwwDNq8q7oKY-HHc6AbxPj3uiV487PTR9olqKIgnr9hma4lo8hXyAa7qw2nKAGF3UB9/exec';
+        
+        // Estado
+        let usuarioActual = null;
+        let claveActual = null;
+        let iconosCache = [];
+        let carpetasCache = [];
+        let carpetaActiva = 'all'; // 'all' o ID de carpeta
+
+        window.addEventListener('load', () => {
+            const u = sessionStorage.getItem('usuarioActual');
+            const c = sessionStorage.getItem('claveActual');
+            const nombre = sessionStorage.getItem('nombreUsuario');
+            const empresa = sessionStorage.getItem('empresaUsuario');
+
+            if (u && c) {
+                usuarioActual = u;
+                claveActual = c;
+                
+                const empresaDisplay = empresa && empresa !== 'null' ? empresa : 'Sin Empresa';
+                document.getElementById('userInfo').innerHTML = `
+                    <div style="text-align: right;">
+                        <div style="font-weight: 600;">${nombre}</div>
+                        <div style="font-size: 11px; opacity: 0.8;">${empresaDisplay}</div>
+                    </div>
+                `;
+                
+                cargarDatos();
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        async function cargarDatos() {
+            // Mostrar loading
+            document.getElementById('iconGrid').innerHTML = `
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Cargando iconos...</p>
+                </div>
+            `;
+
+            // Cargar carpetas e iconos en paralelo
+            const [resCarpetas, resIconos] = await Promise.all([
+                api('listarCarpetas'),
+                api('listarIconos')
+            ]);
+
+            if (resCarpetas.success) carpetasCache = resCarpetas.carpetas;
+            if (resIconos.success) iconosCache = resIconos.iconos;
+
+            renderSidebar();
+            renderGrid();
+        }
+
+        // ==================== RENDERING ====================
+
+        function renderSidebar() {
+            const lista = document.getElementById('folderList');
+            let html = `
+                <div class="folder-item ${carpetaActiva === 'all' ? 'active' : ''}" onclick="filtrar('all')">
+                    <i class="fas fa-th-large"></i> Todos los Iconos
+                </div>
+            `;
+            
+            carpetasCache.forEach(c => {
+                html += `
+                    <div class="folder-item ${carpetaActiva === c.id ? 'active' : ''}" onclick="filtrar('${c.id}')">
+                        <i class="fas fa-folder"></i> ${c.nombre}
+                    </div>
+                `;
+            });
+            
+            lista.innerHTML = html;
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('iconGrid');
+            const titulo = document.getElementById('tituloSeccion');
+            
+            // Filtrar
+            let filtrados = iconosCache;
+            if (carpetaActiva !== 'all') {
+                filtrados = iconosCache.filter(i => i.carpetaId === carpetaActiva);
+                const carpetaObj = carpetasCache.find(c => c.id === carpetaActiva);
+                titulo.textContent = carpetaObj ? carpetaObj.nombre : 'Carpeta';
+            } else {
+                titulo.textContent = 'Todos los Iconos';
+            }
+
+            if (filtrados.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <i class="far fa-images"></i>
+                        <p>No hay iconos en esta carpeta</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filtrados.map(icono => `
+                <div class="icon-card" onclick="copiarUrl('${icono.url}')">
+                    <img src="${icono.url}" class="icon-preview" onerror="this.src='https://via.placeholder.com/64?text=Error'">
+                    <div class="icon-actions">
+                        <button class="btn-icon-action" onclick="event.stopPropagation(); eliminarIcono('${icono.id}')">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filtrar(idCarpeta) {
+            carpetaActiva = idCarpeta;
+            renderSidebar();
+            renderGrid();
+        }
+
+        // ==================== ACCIONES ====================
+
+        async function crearCarpeta() {
+            const nombre = document.getElementById('nombreCarpeta').value;
+            if (!nombre) return;
+
+            const boton = document.querySelector('#modalCarpeta .btn-primary');
+            const textoOriginal = boton.textContent;
+            boton.textContent = 'Creando...';
+            boton.disabled = true;
+
+            const res = await api('crearCarpeta', { nombreCarpeta: nombre });
+            
+            if (res.success) {
+                carpetasCache.push(res.carpeta);
+                renderSidebar();
+                cerrarModales();
+                carpetaActiva = res.carpeta.id; // Ir a la nueva carpeta
+                renderSidebar();
+                renderGrid();
+            } else {
+                alert(res.error);
+            }
+            
+            boton.textContent = textoOriginal;
+            boton.disabled = false;
+        }
+
+        async function subirIcono() {
+            const url = document.getElementById('urlIcono').value;
+            const carpetaId = document.getElementById('selectCarpetaIcono').value;
+            
+            if (!url) return alert('Ingresa una URL');
+
+            const boton = document.querySelector('#modalIcono .btn-primary');
+            const textoOriginal = boton.textContent;
+            boton.textContent = 'Guardando...';
+            boton.disabled = true;
+
+            const res = await api('subirIcono', { 
+                url: url, 
+                carpetaId: carpetaId || null 
+            });
+
+            if (res.success) {
+                iconosCache.push(res.icono);
+                renderGrid();
+                cerrarModales();
+                mostrarToast('Icono agregado correctamente');
+            } else {
+                alert(res.error);
+            }
+
+            boton.textContent = textoOriginal;
+            boton.disabled = false;
+        }
+
+        async function eliminarIcono(id) {
+            if(!confirm('¿Eliminar este icono?')) return;
+            
+            const res = await api('eliminarIcono', { idIcono: id });
+            if (res.success) {
+                iconosCache = iconosCache.filter(i => i.id !== id);
+                renderGrid();
+                mostrarToast('Icono eliminado');
+            } else {
+                alert(res.error);
+            }
+        }
+
+        function copiarUrl(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                mostrarToast('URL copiada al portapapeles');
+            });
+        }
+
+        // ==================== HELPERS ====================
+
+        async function api(accion, data = {}) {
+            try {
+                const body = {
+                    accion: accion,
+                    email: usuarioActual,
+                    clave: claveActual,
+                    ...data
+                };
+                
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(body)
+                });
+                return await response.json();
+            } catch (e) {
+                console.error(e);
+                // Si falla, retornar objeto vacío o error
+                return { success: false, error: 'Error de conexión' };
+            }
+        }
+
+        function abrirModalCarpeta() {
+            document.getElementById('modalCarpeta').classList.add('activo');
+            document.getElementById('nombreCarpeta').focus();
+        }
+
+        function abrirModalIcono() {
+            document.getElementById('modalIcono').classList.add('activo');
+            // Llenar select
+            const select = document.getElementById('selectCarpetaIcono');
+            select.innerHTML = '<option value="">-- Sin Carpeta (General) --</option>' + 
+                carpetasCache.map(c => `<option value="${c.id}" ${c.id === carpetaActiva ? 'selected' : ''}>${c.nombre}</option>`).join('');
+        }
+
+        function cerrarModales() {
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('activo'));
+            document.querySelectorAll('input').forEach(i => i.value = '');
+        }
+
+        function mostrarToast(texto) {
+            const toast = document.getElementById('toast');
+            toast.querySelector('span').textContent = texto;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

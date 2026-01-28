@@ -302,7 +302,7 @@
 
     <script>
         // ⚠️ REEMPLAZA CON TU URL
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzvAqH3GH_zv7YcSEhXVKjlSJe3XivIZZYrEC7V7Bq1eRkYiUmWz-gnz1lEwH7bEUDT/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwwDNq8q7oKY-HHc6AbxPj3uiV487PTR9olqKIgnr9hma4lo8hXyAa7qw2nKAGF3UB9/exec';
 
         // Verificar estado al cargar
         window.addEventListener('load', async () => {
@@ -428,7 +428,7 @@
                     sessionStorage.setItem('claveActual', clave);
                     sessionStorage.setItem('nombreUsuario', resultado.nombre);
                     sessionStorage.setItem('rolUsuario', resultado.rol);
-                    sessionStorage.setItem('empresaUsuario', resultado.empresa);
+                    sessionStorage.setItem('empresaUsuario', resultado.empresaNombre || resultado.empresa);
 
                     mostrarMensajeLogin('exito', '✓ Ingreso correcto');
 

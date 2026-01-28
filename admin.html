@@ -20,17 +20,21 @@
             border-radius: 15px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
         }
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 30px;
+            padding: 20px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
         }
         .header h1 {
-            font-size: 28px;
+            font-size: 24px;
             display: flex;
             align-items: center;
             gap: 15px;
@@ -38,6 +42,7 @@
         .header-actions {
             display: flex;
             gap: 15px;
+            align-items: center;
         }
         .btn {
             padding: 10px 20px;
@@ -63,30 +68,32 @@
             background: #28a745;
             color: white;
         }
-        .btn-success:hover {
-            background: #218838;
-        }
+        .btn-success:hover { background: #218838; }
         .btn-danger {
             background: #dc3545;
             color: white;
         }
-        .btn-danger:hover {
-            background: #c82333;
-        }
+        .btn-danger:hover { background: #c82333; }
+        
         .content {
-            padding: 40px;
+            padding: 30px;
+            overflow-y: auto;
+            flex-grow: 1;
         }
-        .section {
-            display: none;
+        .section { display: none; }
+        .section.activo { display: block; animation: fadeIn 0.3s ease; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .section.activo {
-            display: block;
-        }
+
         .tabs {
             display: flex;
             gap: 15px;
             margin-bottom: 30px;
             border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 0;
         }
         .tab-btn {
             padding: 15px 25px;
@@ -101,14 +108,20 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            margin-bottom: -2px;
         }
         .tab-btn.activo {
             color: #667eea;
             border-bottom-color: #667eea;
+            background: #f8f9fa;
+            border-radius: 8px 8px 0 0;
         }
-        .form-group {
-            margin-bottom: 20px;
+        .tab-btn:hover:not(.activo) {
+            color: #667eea;
+            background: #fafafa;
         }
+
+        .form-group { margin-bottom: 20px; }
         .form-group label {
             display: block;
             margin-bottom: 8px;
@@ -121,11 +134,6 @@
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 14px;
-            font-family: inherit;
-        }
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
         }
         .modal {
             display: none;
@@ -139,9 +147,7 @@
             justify-content: center;
             align-items: center;
         }
-        .modal.activo {
-            display: flex;
-        }
+        .modal.activo { display: flex; }
         .modal-content {
             background: white;
             border-radius: 15px;
@@ -150,24 +156,23 @@
             width: 90%;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
-        .modal-content h2 {
-            margin-bottom: 25px;
-            color: #333;
-        }
         .modal-footer {
             display: flex;
             gap: 10px;
             justify-content: flex-end;
             margin-top: 25px;
         }
+        
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-        table thead {
-            background: #f8f9fa;
-        }
+        table thead { background: #f8f9fa; }
         table th {
             padding: 15px;
             text-align: left;
@@ -178,10 +183,10 @@
         table td {
             padding: 15px;
             border-bottom: 1px solid #e0e0e0;
+            vertical-align: middle;
         }
-        table tr:hover {
-            background: #f8f9fa;
-        }
+        table tr:last-child td { border-bottom: none; }
+        
         .badge {
             display: inline-block;
             padding: 6px 12px;
@@ -189,54 +194,10 @@
             font-size: 12px;
             font-weight: 600;
         }
-        .badge-admin {
-            background: #dc3545;
-            color: white;
-        }
-        .badge-usuario {
-            background: #28a745;
-            color: white;
-        }
-        .acciones {
-            display: flex;
-            gap: 8px;
-        }
-        .btn-pequeño {
-            padding: 6px 12px;
-            font-size: 12px;
-        }
-        .btn-editar {
-            background: #007bff;
-            color: white;
-        }
-        .btn-editar:hover {
-            background: #0056b3;
-        }
-        .btn-eliminar {
-            background: #dc3545;
-            color: white;
-        }
-        .btn-eliminar:hover {
-            background: #c82333;
-        }
-        .mensaje {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        .mensaje.exito {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-            display: block;
-        }
-        .mensaje.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            display: block;
-        }
+        .badge-admin { background: #dc3545; color: white; }
+        .badge-usuario { background: #28a745; color: white; }
+        .badge-empresa { background: #e2e8f0; color: #4a5568; }
+        
         .estadisticas {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -250,24 +211,28 @@
             border-radius: 12px;
             text-align: center;
         }
-        .stat-card h3 {
-            font-size: 32px;
-            margin-bottom: 10px;
+        .stat-card h3 { font-size: 32px; margin-bottom: 10px; }
+        
+        .mensaje {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
         }
-        .stat-card p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
+        .mensaje.exito { background: #d4edda; color: #155724; }
+        .mensaje.error { background: #f8d7da; color: #721c24; }
+        
+        .loading { opacity: 0.5; pointer-events: none; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1><i class="fas fa-shield-alt"></i> Panel Administrativo</h1>
+            <h1><i class="fas fa-shield-alt"></i> Panel Admin</h1>
             <div class="header-actions">
-                <span id="usuarioActual" style="font-size: 14px;"></span>
+                <span id="usuarioActual" style="font-size: 14px; opacity: 0.9;"></span>
                 <button class="btn btn-primary" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    <i class="fas fa-sign-out-alt"></i> Salir
                 </button>
             </div>
         </div>
@@ -277,22 +242,51 @@
                 <button class="tab-btn activo" onclick="cambiarTab('dashboard')">
                     <i class="fas fa-chart-bar"></i> Dashboard
                 </button>
+                <button class="tab-btn" onclick="cambiarTab('empresas')">
+                    <i class="fas fa-building"></i> Empresas
+                </button>
                 <button class="tab-btn" onclick="cambiarTab('usuarios')">
-                    <i class="fas fa-users"></i> Gestionar Usuarios
+                    <i class="fas fa-users"></i> Usuarios
                 </button>
             </div>
 
+            <!-- DASHBOARD -->
             <div id="dashboardSection" class="section activo">
-                <h2>Dashboard</h2>
-                <div class="estadisticas" id="estadisticas"></div>
+                <div class="estadisticas" id="estadisticas">
+                    <!-- Dinámico -->
+                </div>
             </div>
 
+            <!-- EMPRESAS -->
+            <div id="empresasSection" class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2>Gestión de Empresas</h2>
+                    <button class="btn btn-success" onclick="abrirModalNuevaEmpresa()">
+                        <i class="fas fa-plus"></i> Nueva Empresa
+                    </button>
+                </div>
+                <div id="mensajeEmpresas" class="mensaje"></div>
+                <table id="tablaEmpresas">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>ID</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyEmpresas"></tbody>
+                </table>
+            </div>
+
+            <!-- USUARIOS -->
             <div id="usuariosSection" class="section">
-                <h2>Gestión de Usuarios</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2>Gestión de Usuarios</h2>
+                    <button class="btn btn-success" onclick="abrirModalNuevoUsuario()">
+                        <i class="fas fa-user-plus"></i> Nuevo Usuario
+                    </button>
+                </div>
                 <div id="mensajeUsuarios" class="mensaje"></div>
-                <button class="btn btn-success" onclick="abrirModalNuevoUsuario()">
-                    <i class="fas fa-user-plus"></i> Crear Nuevo Usuario
-                </button>
                 <table id="tablaUsuarios">
                     <thead>
                         <tr>
@@ -309,10 +303,27 @@
         </div>
     </div>
 
+    <!-- MODAL NUEVA EMPRESA -->
+    <div id="modalNuevaEmpresa" class="modal">
+        <div class="modal-content">
+            <h2>Crear Nueva Empresa</h2>
+            <div id="mensajeModalEmpresa" class="mensaje"></div>
+            <div class="form-group">
+                <label>Nombre de la Empresa:</label>
+                <input type="text" id="nombreEmpresa" placeholder="Ej: Tech Solutions">
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="cerrarModales()" style="background: #999; color: white;">Cancelar</button>
+                <button class="btn btn-success" onclick="crearEmpresa()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVO USUARIO -->
     <div id="modalNuevoUsuario" class="modal">
         <div class="modal-content">
             <h2>Crear Nuevo Usuario</h2>
-            <div id="mensajeModal" class="mensaje"></div>
+            <div id="mensajeModalUsuario" class="mensaje"></div>
             <div class="form-group">
                 <label>Email:</label>
                 <input type="email" id="nuevoEmail" placeholder="usuario@empresa.com">
@@ -323,320 +334,261 @@
             </div>
             <div class="form-group">
                 <label>Contraseña:</label>
-                <input type="password" id="nuevaClave" placeholder="Contraseña segura">
+                <input type="password" id="nuevaClave" placeholder="Mínimo 8 caracteres">
             </div>
             <div class="form-group">
-                <label>Empresa:</label>
-                <select id="nuevoEmpresa">
-                    <option value="">Seleccionar...</option>
-                    <option value="Empresa 1">Empresa 1</option>
-                    <option value="Empresa 2">Empresa 2</option>
+                <label>Asignar Empresa:</label>
+                <select id="nuevoEmpresaId">
+                    <option value="">-- Seleccionar --</option>
+                    <!-- Dinámico -->
                 </select>
             </div>
             <div class="form-group">
-                <label>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                     <input type="checkbox" id="nuevoEsAdmin">
-                    ¿Es Administrador?
+                    ¿Es Administrador del Sistema?
                 </label>
             </div>
             <div class="modal-footer">
-                <button class="btn" onclick="cerrarModal('modalNuevoUsuario')" style="background: #999; color: white;">
-                    Cancelar
-                </button>
-                <button class="btn btn-success" onclick="crearUsuario()">
-                    <i class="fas fa-save"></i> Guardar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modalEditarEmpresa" class="modal">
-        <div class="modal-content">
-            <h2>Cambiar Empresa</h2>
-            <p id="emailEditando" style="margin-bottom: 20px; color: #666;"></p>
-            <div class="form-group">
-                <label>Nueva Empresa:</label>
-                <select id="editarEmpresa">
-                    <option value="">Seleccionar...</option>
-                    <option value="Empresa 1">Empresa 1</option>
-                    <option value="Empresa 2">Empresa 2</option>
-                </select>
-            </div>
-            <div class="modal-footer">
-                <button class="btn" onclick="cerrarModal('modalEditarEmpresa')" style="background: #999; color: white;">
-                    Cancelar
-                </button>
-                <button class="btn btn-success" onclick="guardarCambioEmpresa()">
-                    <i class="fas fa-save"></i> Guardar
-                </button>
+                <button class="btn" onclick="cerrarModales()" style="background: #999; color: white;">Cancelar</button>
+                <button class="btn btn-success" onclick="crearUsuario()">Guardar</button>
             </div>
         </div>
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzvAqH3GH_zv7YcSEhXVKjlSJe3XivIZZYrEC7V7Bq1eRkYiUmWz-gnz1lEwH7bEUDT/exec';
+        // ⚠️ REEMPLAZA CON TU URL SI CAMBIA
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwwDNq8q7oKY-HHc6AbxPj3uiV487PTR9olqKIgnr9hma4lo8hXyAa7qw2nKAGF3UB9/exec';
+        
         let usuarioActual = null;
         let claveActual = null;
-        let usuarioEditando = null;
+        
+        let cacheEmpresas = []; // Cache local de empresas
 
         window.addEventListener('load', () => {
-            const usuarioGuardado = sessionStorage.getItem('usuarioAdmin');
-            const claveGuardada = sessionStorage.getItem('claveAdmin');
+            const u = sessionStorage.getItem('usuarioAdmin');
+            const c = sessionStorage.getItem('claveAdmin');
 
-            if (usuarioGuardado && claveGuardada) {
-                usuarioActual = usuarioGuardado;
-                claveActual = claveGuardada;
-                document.getElementById('usuarioActual').textContent = `👤 ${usuarioActual}`;
-                cargarDashboard();
-                cargarUsuarios();
+            if (u && c) {
+                usuarioActual = u;
+                claveActual = c;
+                document.getElementById('usuarioActual').innerHTML = `Hola, <b>${u}</b>`;
+                cargarTodo();
             } else {
                 window.location.href = 'index.html';
             }
         });
 
+        async function cargarTodo() {
+            await cargarEmpresas(); // Primero empresas para tener el cache
+            cargarDashboard();
+        }
+
         function cambiarTab(tab) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('activo'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+            
+            document.getElementById(`${tab}Section`).classList.add('activo');
+            // Encontrar btn correspondiente
+            const btns = document.querySelectorAll('.tab-btn');
+            if(tab === 'dashboard') btns[0].classList.add('activo');
+            if(tab === 'empresas') btns[1].classList.add('activo');
+            if(tab === 'usuarios') btns[2].classList.add('activo');
 
-            if (tab === 'dashboard') {
-                document.getElementById('dashboardSection').classList.add('activo');
-                document.querySelectorAll('.tab-btn')[0].classList.add('activo');
-                cargarDashboard();
-            } else if (tab === 'usuarios') {
-                document.getElementById('usuariosSection').classList.add('activo');
-                document.querySelectorAll('.tab-btn')[1].classList.add('activo');
-                cargarUsuarios();
-            }
+            if (tab === 'dashboard') cargarDashboard();
+            if (tab === 'empresas') cargarEmpresas();
+            if (tab === 'usuarios') cargarUsuarios();
         }
 
+        // ==================== DASHBOARD ====================
         async function cargarDashboard() {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        accion: 'listarUsuarios',
-                        email: usuarioActual,
-                        clave: claveActual
-                    })
-                });
+            const users = await api('listarUsuarios');
+            const empresas = await api('listarEmpresas');
+            
+            if (users && empresas) {
+                const totalUsers = users.usuarios.length;
+                const totalEmpresas = empresas.empresas.length;
+                const totalAdmins = users.usuarios.filter(u => u.rol === 'admin').length;
 
-                const usuarios = await response.json();
-
-                if (Array.isArray(usuarios)) {
-                    const totalUsuarios = usuarios.length;
-                    const totalAdmins = usuarios.filter(u => u.rol === 'admin').length;
-                    const empresa1 = usuarios.filter(u => u.empresa === 'Empresa 1').length;
-                    const empresa2 = usuarios.filter(u => u.empresa === 'Empresa 2').length;
-
-                    document.getElementById('estadisticas').innerHTML = `
-                        <div class="stat-card">
-                            <h3>${totalUsuarios}</h3>
-                            <p>Total de Usuarios</p>
-                        </div>
-                        <div class="stat-card">
-                            <h3>${totalAdmins}</h3>
-                            <p>Administradores</p>
-                        </div>
-                        <div class="stat-card">
-                            <h3>${empresa1}</h3>
-                            <p>Usuarios Empresa 1</p>
-                        </div>
-                        <div class="stat-card">
-                            <h3>${empresa2}</h3>
-                            <p>Usuarios Empresa 2</p>
-                        </div>
-                    `;
-                }
-            } catch (e) {
-                console.error('Error:', e);
+                document.getElementById('estadisticas').innerHTML = `
+                    <div class="stat-card">
+                        <h3>${totalEmpresas}</h3>
+                        <p>Empresas Activas</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${totalUsers}</h3>
+                        <p>Usuarios Totales</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${totalAdmins}</h3>
+                        <p>Administradores</p>
+                    </div>
+                `;
             }
         }
 
+        // ==================== EMPRESAS ====================
+        async function cargarEmpresas() {
+            const res = await api('listarEmpresas');
+            if (res && res.success) {
+                cacheEmpresas = res.empresas;
+                const tbody = document.getElementById('tbodyEmpresas');
+                tbody.innerHTML = res.empresas.map(e => `
+                    <tr>
+                        <td><strong>${e.nombre}</strong></td>
+                        <td style="color: #999; font-family: monospace;">${e.id}</td>
+                        <td>
+                            <button class="btn btn-danger btn-pequeño" onclick="eliminarEmpresa('${e.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                // Actualizar select de modales
+                actualizarSelectEmpresas();
+            }
+        }
+
+        async function crearEmpresa() {
+            const nombre = document.getElementById('nombreEmpresa').value;
+            if (!nombre) return alert('Ingresa un nombre');
+
+            const res = await api('crearEmpresa', { nombreEmpresa: nombre });
+            if (res.success) {
+                mostrarMensaje('mensajeModalEmpresa', 'exito', 'Empresa creada');
+                document.getElementById('nombreEmpresa').value = '';
+                setTimeout(() => {
+                    cerrarModales();
+                    cargarEmpresas();
+                }, 1000);
+            } else {
+                mostrarMensaje('mensajeModalEmpresa', 'error', res.error);
+            }
+        }
+
+        async function eliminarEmpresa(id) {
+            if(!confirm('¿Estás seguro? Esto podría afectar a los usuarios asignados.')) return;
+            
+            const res = await api('eliminarEmpresa', { idEmpresa: id });
+            if(res.success) {
+                cargarEmpresas(); // Recargar lista
+            } else {
+                alert('Error: ' + res.error);
+            }
+        }
+
+        // ==================== USUARIOS ====================
         async function cargarUsuarios() {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        accion: 'listarUsuarios',
-                        email: usuarioActual,
-                        clave: claveActual
-                    })
-                });
-
-                const usuarios = await response.json();
-
-                if (Array.isArray(usuarios)) {
-                    let html = '';
-                    usuarios.forEach(user => {
-                        const rolBadge = user.rol === 'admin' 
-                            ? '<span class="badge badge-admin">Admin</span>'
-                            : '<span class="badge badge-usuario">Usuario</span>';
-                        
-                        const empresaBadge = user.empresa 
-                            ? `<span style="color: #667eea; font-weight: 600;">${user.empresa}</span>`
-                            : '<span style="color: #999;">-</span>';
-
-                        html += `
-                            <tr>
-                                <td>${user.email}</td>
-                                <td>${user.nombre}</td>
-                                <td>${rolBadge}</td>
-                                <td>${empresaBadge}</td>
-                                <td>
-                                    <div class="acciones">
-                                        <button class="btn btn-pequeño btn-editar" onclick="abrirModalEditarEmpresa('${user.email}')">
-                                            <i class="fas fa-edit"></i> Empresa
-                                        </button>
-                                        <button class="btn btn-pequeño btn-eliminar" onclick="confirmarEliminar('${user.email}')">
-                                            <i class="fas fa-trash"></i> Eliminar
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        `;
-                    });
-
-                    document.getElementById('tbodyUsuarios').innerHTML = html;
-                }
-            } catch (e) {
-                mostrarMensaje('mensajeUsuarios', 'error', 'Error cargando usuarios');
+            const res = await api('listarUsuarios');
+            if (res && res.success) {
+                const tbody = document.getElementById('tbodyUsuarios');
+                tbody.innerHTML = res.usuarios.map(u => {
+                    const empresaNombre = u.empresaNombre || (u.empresaId ? buscarNombreEmpresa(u.empresaId) : '-');
+                    return `
+                    <tr>
+                        <td>${u.email}</td>
+                        <td>${u.nombre}</td>
+                        <td><span class="badge ${u.rol === 'admin' ? 'badge-admin' : 'badge-usuario'}">${u.rol}</span></td>
+                        <td><span class="badge badge-empresa">${empresaNombre}</span></td>
+                        <td>
+                            <button class="btn btn-danger btn-pequeño" onclick="eliminarUsuario('${u.email}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `}).join('');
             }
-        }
-
-        function abrirModalNuevoUsuario() {
-            document.getElementById('modalNuevoUsuario').classList.add('activo');
         }
 
         async function crearUsuario() {
             const email = document.getElementById('nuevoEmail').value;
             const nombre = document.getElementById('nuevoNombre').value;
             const clave = document.getElementById('nuevaClave').value;
-            const empresa = document.getElementById('nuevoEmpresa').value;
+            const empresaId = document.getElementById('nuevoEmpresaId').value;
             const esAdmin = document.getElementById('nuevoEsAdmin').checked;
 
-            if (!email || !nombre || !clave) {
-                mostrarMensaje('mensajeModal', 'error', 'Completa todos los campos');
-                return;
-            }
+            if(!email || !nombre || !clave) return alert('Datos incompletos');
 
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        accion: 'crearUsuario',
-                        email: usuarioActual,
-                        clave: claveActual,
-                        nuevoEmail: email,
-                        nuevoNombre: nombre,
-                        nuevaClave: clave,
-                        empresa: empresa || null,
-                        esAdmin: esAdmin
-                    })
-                });
-
-                const resultado = await response.json();
-
-                if (resultado.success) {
-                    mostrarMensaje('mensajeModal', 'exito', 'Usuario creado correctamente');
-                    setTimeout(() => {
-                        cerrarModal('modalNuevoUsuario');
-                        cargarUsuarios();
-                    }, 1500);
-                } else {
-                    mostrarMensaje('mensajeModal', 'error', resultado.error);
-                }
-            } catch (e) {
-                mostrarMensaje('mensajeModal', 'error', 'Error: ' + e.message);
-            }
-        }
-
-        function abrirModalEditarEmpresa(email) {
-            usuarioEditando = email;
-            document.getElementById('emailEditando').textContent = `Email: ${email}`;
-            document.getElementById('modalEditarEmpresa').classList.add('activo');
-        }
-
-        async function guardarCambioEmpresa() {
-            const nuevaEmpresa = document.getElementById('editarEmpresa').value;
-
-            if (!nuevaEmpresa) {
-                alert('Selecciona una empresa');
-                return;
-            }
-
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        accion: 'editarEmpresaUsuario',
-                        email: usuarioActual,
-                        clave: claveActual,
-                        usuarioTarget: usuarioEditando,
-                        nuevaEmpresa: nuevaEmpresa
-                    })
-                });
-
-                const resultado = await response.json();
-
-                if (resultado.success) {
-                    mostrarMensaje('mensajeUsuarios', 'exito', 'Empresa actualizada');
-                    cerrarModal('modalEditarEmpresa');
-                    cargarUsuarios();
-                } else {
-                    alert('Error: ' + resultado.error);
-                }
-            } catch (e) {
-                alert('Error: ' + e.message);
-            }
-        }
-
-        async function confirmarEliminar(email) {
-            if (confirm(`¿Eliminar usuario ${email}?`)) {
-                try {
-                    const response = await fetch(APPS_SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            accion: 'eliminarUsuario',
-                            email: usuarioActual,
-                            clave: claveActual,
-                            usuarioTarget: email
-                        })
-                    });
-
-                    const resultado = await response.json();
-
-                    if (resultado.success) {
-                        mostrarMensaje('mensajeUsuarios', 'exito', 'Usuario eliminado');
-                        cargarUsuarios();
-                    } else {
-                        mostrarMensaje('mensajeUsuarios', 'error', resultado.error);
-                    }
-                } catch (e) {
-                    mostrarMensaje('mensajeUsuarios', 'error', 'Error: ' + e.message);
-                }
-            }
-        }
-
-        function cerrarModal(modalId) {
-            document.getElementById(modalId).classList.remove('activo');
-            document.querySelectorAll('.modal-content input, .modal-content select').forEach(el => {
-                el.value = '';
-                if (el.type === 'checkbox') el.checked = false;
+            const res = await api('crearUsuario', {
+                nuevoEmail: email,
+                nuevoNombre: nombre,
+                nuevaClave: clave,
+                empresaId: empresaId,
+                esAdmin: esAdmin
             });
+
+            if (res.success) {
+                mostrarMensaje('mensajeModalUsuario', 'exito', 'Usuario creado');
+                setTimeout(() => {
+                    cerrarModales();
+                    cargarUsuarios();
+                }, 1000);
+            } else {
+                mostrarMensaje('mensajeModalUsuario', 'error', res.error);
+            }
         }
 
-        function mostrarMensaje(elementId, tipo, texto) {
-            const elemento = document.getElementById(elementId);
-            elemento.textContent = texto;
-            elemento.className = `mensaje ${tipo}`;
-            setTimeout(() => {
-                elemento.className = 'mensaje';
-            }, 3000);
+        async function eliminarUsuario(email) {
+            if(!confirm('¿Eliminar usuario?')) return;
+            const res = await api('eliminarUsuario', { usuarioTarget: email });
+            if(res.success) cargarUsuarios();
+            else alert(res.error);
+        }
+
+        // ==================== HELPERS ====================
+        async function api(accion, data = {}) {
+            try {
+                const body = {
+                    accion: accion,
+                    email: usuarioActual,
+                    clave: claveActual,
+                    ...data
+                };
+                
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(body)
+                });
+                return await response.json();
+            } catch (e) {
+                console.error(e);
+                alert('Error de conexión');
+                return null;
+            }
+        }
+
+        function buscarNombreEmpresa(id) {
+            const emp = cacheEmpresas.find(e => e.id === id);
+            return emp ? emp.nombre : 'ID Desconocido';
+        }
+
+        function actualizarSelectEmpresas() {
+            const select = document.getElementById('nuevoEmpresaId');
+            if(!select) return;
+            select.innerHTML = '<option value="">-- Sin Empresa --</option>' + 
+                cacheEmpresas.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
+        }
+
+        function abrirModalNuevaEmpresa() { document.getElementById('modalNuevaEmpresa').classList.add('activo'); }
+        function abrirModalNuevoUsuario() { 
+            document.getElementById('modalNuevoUsuario').classList.add('activo'); 
+            actualizarSelectEmpresas(); 
+        }
+        function cerrarModales() { 
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('activo'));
+            document.querySelectorAll('input').forEach(i => i.value = '');
+        }
+
+        function mostrarMensaje(id, tipo, texto) {
+            const el = document.getElementById(id);
+            el.textContent = texto;
+            el.className = `mensaje ${tipo}`;
+            el.style.display = 'block';
         }
 
         function logout() {
-            sessionStorage.removeItem('usuarioAdmin');
-            sessionStorage.removeItem('claveAdmin');
+            sessionStorage.clear();
             window.location.href = 'index.html';
         }
     </script>

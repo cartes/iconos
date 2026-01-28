@@ -1,347 +1,511 @@
 // ==================== VARIABLES GLOBALES ====================
+// Usamos el root folder por defecto, igual que el original.
 const FOLDER_ID = DriveApp.getRootFolder();
+
+// ==================== MODELOS DE DATOS (Nombres de Archivos) ====================
+const DB_USUARIOS = "usuarios.json";
+const DB_EMPRESAS = "empresas.json";
+const DB_CARPETAS = "carpetas.json";
+const DB_ICONOS = "iconos.json";
+
+// ==================== MANUAL RESTORE ====================
+function restaurarUsuarioManual() {
+  const usuarioData = {
+    "cristian.cartes@content360.cl": {
+      hash: "MX6grk7OFu/WbIWgabBD9YMrzVPYV0NdhalKlmqSJVY=",
+      nombre: "Cristian Cartes",
+      rol: "admin",
+      empresa: null,
+      fechaCreacion: "2026-01-19T16:31:57.041Z",
+      activo: true,
+    },
+  };
+
+  const usuarios = obtenerArchivo(DB_USUARIOS, {});
+  // Merge manual data
+  Object.assign(usuarios, usuarioData);
+  guardarArchivo(DB_USUARIOS, usuarios);
+
+  console.log("Usuario restaurado con éxito.");
+  return "Usuario restaurado";
+}
 
 // ==================== FUNCIONES DE UTILIDAD ====================
 
-function obtenerArchivo(nombreArchivo, contenidoDefault = {}) {
+function obtenerArchivo(nombreArchivo, contenidoDefault = []) {
   try {
-    const file = FOLDER_ID.getFilesByName(nombreArchivo).next();
-    const contenido = file.getBlob().getDataAsString();
-    return JSON.parse(contenido);
+    const files = FOLDER_ID.getFilesByName(nombreArchivo);
+    if (files.hasNext()) {
+      const file = files.next();
+      const text = file.getBlob().getDataAsString();
+      return JSON.parse(text);
+    } else {
+      // Archivo no existe, crear nuevo
+      const contenidoJSON = JSON.stringify(contenidoDefault, null, 2);
+      FOLDER_ID.createFile(nombreArchivo, contenidoJSON, "application/json");
+      return contenidoDefault;
+    }
   } catch (e) {
-    // Archivo no existe, crear nuevo
-    const contenidoJSON = typeof contenidoDefault === 'string' ? contenidoDefault : JSON.stringify(contenidoDefault);
-    FOLDER_ID.createFile(nombreArchivo, contenidoJSON, 'application/json');
+    console.error(`Error leyendo ${nombreArchivo}: ${e}`);
     return contenidoDefault;
   }
 }
 
 function guardarArchivo(nombreArchivo, contenido) {
   try {
-    const file = FOLDER_ID.getFilesByName(nombreArchivo).next();
-    file.setContent(JSON.stringify(contenido, null, 2));
+    const files = FOLDER_ID.getFilesByName(nombreArchivo);
+    if (files.hasNext()) {
+      const file = files.next();
+      file.setContent(JSON.stringify(contenido, null, 2));
+    } else {
+      FOLDER_ID.createFile(
+        nombreArchivo,
+        JSON.stringify(contenido, null, 2),
+        "application/json",
+      );
+    }
   } catch (e) {
-    FOLDER_ID.createFile(nombreArchivo, JSON.stringify(contenido, null, 2), 'application/json');
+    console.error(`Error guardando ${nombreArchivo}: ${e}`);
+    throw e;
   }
 }
 
-// ==================== BOOTSTRAP SEGURO ====================
+function generarUUID() {
+  return Utilities.getUuid();
+}
+
+// ==================== MIGRACIÓN / INICIALIZACIÓN ====================
+// Asegura que existan los archivos base
+function inicializarBD() {
+  obtenerArchivo(DB_EMPRESAS, []);
+  obtenerArchivo(DB_CARPETAS, []);
+  obtenerArchivo(DB_ICONOS, []);
+  // usuarios.json es un objeto en la versión anterior, mantengamos compatibilidad si es posible,
+  // pero para facilitar búsquedas, la versión anterior usaba un objeto {email: data}.
+  // Mantendremos { "email": { ... } } para usuarios.json por ahora para no romper todo,
+  // aunque arrays suelen ser mejores para filtrar.
+  // REVISION: El código anterior usaba Objeto. Mantendré Objeto para usuarios.json.
+  obtenerArchivo(DB_USUARIOS, {});
+}
+
+// ==================== ADMIN & AUTH ====================
 
 function verificarSiHayAdmin() {
-  const usuarios = obtenerArchivo('usuarios.json', {});
-  
-  // Contar admins
-  const admins = Object.values(usuarios).filter(u => u.rol === 'admin');
-  
+  const usuarios = obtenerArchivo(DB_USUARIOS, {});
+  const admins = Object.values(usuarios).filter((u) => u.rol === "admin");
   return admins.length > 0;
 }
 
-function crearPrimerAdmin(email, nombre, clave) {
-  const usuarios = obtenerArchivo('usuarios.json', {});
-  
-  // Verificar que NO haya admin
-  if (verificarSiHayAdmin()) {
-    return { success: false, error: "Ya existe un administrador. No puedes crear otro." };
-  }
-  
-  // Verificar que email sea válido
-  if (!email || !email.includes('@')) {
-    return { success: false, error: "Email inválido" };
-  }
-  
-  // Verificar que nombre y clave no sean vacías
-  if (!nombre || nombre.length < 3) {
-    return { success: false, error: "El nombre debe tener al menos 3 caracteres" };
-  }
-  
-  if (!clave || clave.length < 8) {
-    return { success: false, error: "La contraseña debe tener al menos 8 caracteres" };
-  }
-  
-  // Verificar que no exista el usuario
-  if (usuarios[email]) {
-    return { success: false, error: "El usuario ya existe" };
-  }
-  
-  // Crear hash
-  const hash = Utilities.computeDigest(
-    Utilities.DigestAlgorithm.SHA_256,
-    clave
-  );
-  
-  // Crear admin
-  usuarios[email] = {
-    hash: Utilities.base64Encode(hash),
-    nombre: nombre,
-    rol: 'admin',
-    empresa: null,
-    fechaCreacion: new Date().toISOString(),
-    activo: true
-  };
-  
-  guardarArchivo('usuarios.json', usuarios);
-  
-  return {
-    success: true,
-    mensaje: `Admin ${nombre} creado correctamente`,
-    email: email
-  };
-}
-
-// ==================== AUTENTICACIÓN ====================
-
 function verificarAdmin(email, clave) {
-  const usuarios = obtenerArchivo('usuarios.json', {});
+  const usuarios = obtenerArchivo(DB_USUARIOS, {});
   const user = usuarios[email];
-  
   if (!user) return { success: false, error: "Usuario no existe" };
-  
+
   const hash = Utilities.computeDigest(
     Utilities.DigestAlgorithm.SHA_256,
-    clave
+    clave,
   );
-  
   const hashEncoded = Utilities.base64Encode(hash);
-  
-  if (hashEncoded !== user.hash) {
+
+  if (hashEncoded !== user.hash)
     return { success: false, error: "Contraseña incorrecta" };
-  }
-  
-  if (user.rol !== 'admin') {
+  if (user.rol !== "admin")
     return { success: false, error: "No tienes permisos de administrador" };
-  }
-  
+
   return { success: true, usuario: user };
 }
 
-// ==================== GESTIÓN DE USUARIOS ====================
-
-function crearUsuario(emailAdmin, claveAdmin, nuevoEmail, nuevoNombre, nuevaClave, empresa, esAdmin) {
-  // Verificar que quien lo hace es admin
-  const adminCheck = verificarAdmin(emailAdmin, claveAdmin);
-  if (!adminCheck.success) return adminCheck;
-  
-  const usuarios = obtenerArchivo('usuarios.json', {});
-  
-  // Verificar que no exista
-  if (usuarios[nuevoEmail]) {
-    return { success: false, error: "El usuario ya existe" };
-  }
-  
-  // Validaciones
-  if (!nuevoNombre || nuevoNombre.length < 3) {
-    return { success: false, error: "El nombre debe tener al menos 3 caracteres" };
-  }
-  
-  if (!nuevaClave || nuevaClave.length < 8) {
-    return { success: false, error: "La contraseña debe tener al menos 8 caracteres" };
-  }
-  
-  // Crear hash de la contraseña
-  const hash = Utilities.computeDigest(
-    Utilities.DigestAlgorithm.SHA_256,
-    nuevaClave
-  );
-  
-  // Agregar usuario
-  usuarios[nuevoEmail] = {
-    hash: Utilities.base64Encode(hash),
-    nombre: nuevoNombre,
-    rol: esAdmin ? 'admin' : 'usuario',
-    empresa: empresa || null,
-    fechaCreacion: new Date().toISOString(),
-    activo: true
-  };
-  
-  guardarArchivo('usuarios.json', usuarios);
-  
-  return { 
-    success: true, 
-    mensaje: `Usuario ${nuevoNombre} creado correctamente`,
-    email: nuevoEmail
-  };
-}
-
-function listarUsuarios(email, clave) {
-  // Verificar que quien lo hace es admin
-  const adminCheck = verificarAdmin(email, clave);
-  if (!adminCheck.success) return adminCheck;
-  
-  const usuarios = obtenerArchivo('usuarios.json', {});
-  
-  // Convertir a array
-  const usuariosArray = Object.keys(usuarios).map(email => ({
-    email: email,
-    nombre: usuarios[email].nombre,
-    rol: usuarios[email].rol,
-    empresa: usuarios[email].empresa,
-    fechaCreacion: usuarios[email].fechaCreacion,
-    activo: usuarios[email].activo
-  }));
-  
-  return usuariosArray;
-}
-
-function editarEmpresaUsuario(emailAdmin, claveAdmin, usuarioTarget, nuevaEmpresa) {
-  // Verificar que quien lo hace es admin
-  const adminCheck = verificarAdmin(emailAdmin, claveAdmin);
-  if (!adminCheck.success) return adminCheck;
-  
-  const usuarios = obtenerArchivo('usuarios.json', {});
-  
-  if (!usuarios[usuarioTarget]) {
-    return { success: false, error: "Usuario no encontrado" };
-  }
-  
-  // Actualizar empresa
-  usuarios[usuarioTarget].empresa = nuevaEmpresa;
-  guardarArchivo('usuarios.json', usuarios);
-  
-  return { 
-    success: true,
-    mensaje: `Empresa de ${usuarioTarget} actualizada a ${nuevaEmpresa}`
-  };
-}
-
-function eliminarUsuario(emailAdmin, claveAdmin, usuarioTarget) {
-  // Verificar que quien lo hace es admin
-  const adminCheck = verificarAdmin(emailAdmin, claveAdmin);
-  if (!adminCheck.success) return adminCheck;
-  
-  const usuarios = obtenerArchivo('usuarios.json', {});
-  
-  if (!usuarios[usuarioTarget]) {
-    return { success: false, error: "Usuario no encontrado" };
-  }
-  
-  // No permitir eliminar a sí mismo
-  if (emailAdmin === usuarioTarget) {
-    return { success: false, error: "No puedes eliminar tu propia cuenta" };
-  }
-  
-  delete usuarios[usuarioTarget];
-  guardarArchivo('usuarios.json', usuarios);
-  
-  return { 
-    success: true,
-    mensaje: `Usuario ${usuarioTarget} eliminado`
-  };
-}
-
-// ==================== AUTENTICACIÓN DE USUARIO NORMAL ====================
-
 function verificarLogin(email, clave) {
-  const usuarios = obtenerArchivo('usuarios.json', {});
+  const usuarios = obtenerArchivo(DB_USUARIOS, {});
   const user = usuarios[email];
-  
+
   if (!user) return { success: false, error: "Usuario no existe" };
-  
+
   const hash = Utilities.computeDigest(
     Utilities.DigestAlgorithm.SHA_256,
-    clave
+    clave,
   );
-  
   const hashEncoded = Utilities.base64Encode(hash);
-  
-  if (hashEncoded !== user.hash) {
+
+  if (hashEncoded !== user.hash)
     return { success: false, error: "Contraseña incorrecta" };
-  }
-  
-  return { 
+
+  return {
     success: true,
     usuario: email,
     nombre: user.nombre,
     rol: user.rol,
-    empresa: user.empresa
+    empresaId: user.empresaId || null, // Usamos ID ahora
+    empresaNombre: user.empresaNombre || user.empresa || null, // Fallback
   };
 }
 
-// ==================== VERIFICAR ESTADO DEL SISTEMA ====================
+function crearPrimerAdmin(email, nombre, clave) {
+  const usuarios = obtenerArchivo(DB_USUARIOS, {});
+  if (verificarSiHayAdmin())
+    return { success: false, error: "Ya existe administrador" };
 
-function verificarEstadoSistema() {
-  const hayAdmin = verificarSiHayAdmin();
-  
-  return {
-    hayAdmin: hayAdmin,
-    necesitaBootstrap: !hayAdmin
+  const hash = Utilities.base64Encode(
+    Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, clave),
+  );
+
+  usuarios[email] = {
+    hash: hash,
+    nombre: nombre,
+    rol: "admin",
+    empresaId: null,
+    fechaCreacion: new Date().toISOString(),
+    activo: true,
   };
+
+  guardarArchivo(DB_USUARIOS, usuarios);
+  return { success: true };
 }
 
-// ==================== API WEB ====================
+// ==================== GESTIÓN DE EMPRESAS ====================
+
+function crearEmpresa(emailAdmin, claveAdmin, nombreEmpresa) {
+  const auth = verificarAdmin(emailAdmin, claveAdmin);
+  if (!auth.success) return auth;
+
+  const empresas = obtenerArchivo(DB_EMPRESAS, []);
+
+  // Validar duplicados nombre
+  if (
+    empresas.some((e) => e.nombre.toLowerCase() === nombreEmpresa.toLowerCase())
+  ) {
+    return { success: false, error: "Ya existe una empresa con este nombre" };
+  }
+
+  const nuevaEmpresa = {
+    id: generarUUID(),
+    nombre: nombreEmpresa,
+    fechaCreacion: new Date().toISOString(),
+  };
+
+  empresas.push(nuevaEmpresa);
+  guardarArchivo(DB_EMPRESAS, empresas);
+
+  return { success: true, empresa: nuevaEmpresa };
+}
+
+function listarEmpresas(emailAdmin, claveAdmin) {
+  const auth = verificarAdmin(emailAdmin, claveAdmin);
+  if (!auth.success) return auth;
+
+  const empresas = obtenerArchivo(DB_EMPRESAS, []);
+  return { success: true, empresas: empresas };
+}
+
+function eliminarEmpresa(emailAdmin, claveAdmin, idEmpresa) {
+  const auth = verificarAdmin(emailAdmin, claveAdmin);
+  if (!auth.success) return auth;
+
+  let empresas = obtenerArchivo(DB_EMPRESAS, []);
+  empresas = empresas.filter((e) => e.id !== idEmpresa);
+  guardarArchivo(DB_EMPRESAS, empresas);
+
+  // Opcional: Eliminar o desvincular usuarios/iconos de esta empresa?
+  // Por ahora dejamos huérfanos o se maneja manualmente.
+
+  return { success: true };
+}
+
+// ==================== GESTIÓN DE USUARIOS (Con Empresas Dinámicas) ====================
+
+function crearUsuario(
+  emailAdmin,
+  claveAdmin,
+  nuevoEmail,
+  nuevoNombre,
+  nuevaClave,
+  empresaId,
+  esAdmin,
+) {
+  const auth = verificarAdmin(emailAdmin, claveAdmin);
+  if (!auth.success) return auth;
+
+  const usuarios = obtenerArchivo(DB_USUARIOS, {});
+  if (usuarios[nuevoEmail])
+    return { success: false, error: "El usuario ya existe" };
+
+  // Obtener nombre de empresa para guardar cache (opcional, pero útil)
+  let empresaNombre = null;
+  if (empresaId) {
+    const empresas = obtenerArchivo(DB_EMPRESAS, []);
+    const emp = empresas.find((e) => e.id === empresaId);
+    if (emp) empresaNombre = emp.nombre;
+  }
+
+  const hash = Utilities.base64Encode(
+    Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, nuevaClave),
+  );
+
+  usuarios[nuevoEmail] = {
+    hash: hash,
+    nombre: nuevoNombre,
+    rol: esAdmin ? "admin" : "usuario",
+    empresaId: empresaId || null,
+    empresaNombre: empresaNombre, // Guardamos nombre para facilitar display sin joins
+    fechaCreacion: new Date().toISOString(),
+    activo: true,
+  };
+
+  guardarArchivo(DB_USUARIOS, usuarios);
+  return { success: true, mensaje: "Usuario creado" };
+}
+
+function listarUsuarios(emailAdmin, claveAdmin) {
+  const auth = verificarAdmin(emailAdmin, claveAdmin);
+  if (!auth.success) return auth;
+
+  const usuarios = obtenerArchivo(DB_USUARIOS, {});
+  const listado = Object.keys(usuarios).map((email) => {
+    const u = usuarios[email];
+    return {
+      email: email,
+      nombre: u.nombre,
+      rol: u.rol,
+      empresaId: u.empresaId,
+      empresaNombre: u.empresaNombre || u.empresa, // fallback legacy
+    };
+  });
+
+  return { success: true, usuarios: listado };
+}
+
+function eliminarUsuario(emailAdmin, claveAdmin, usuarioTarget) {
+  const auth = verificarAdmin(emailAdmin, claveAdmin);
+  if (!auth.success) return auth;
+
+  const usuarios = obtenerArchivo(DB_USUARIOS, {});
+  if (!usuarios[usuarioTarget])
+    return { success: false, error: "Usuario no existe" };
+  if (emailAdmin === usuarioTarget)
+    return { success: false, error: "No puedes eliminarte a ti mismo" };
+
+  delete usuarios[usuarioTarget];
+  guardarArchivo(DB_USUARIOS, usuarios);
+
+  return { success: true };
+}
+
+// ==================== GESTIÓN DE CARPETAS Y ICONOS ====================
+
+function crearCarpeta(usuarioEmail, clave, nombreCarpeta) {
+  const login = verificarLogin(usuarioEmail, clave);
+  if (!login.success) return login;
+
+  const empresaId = login.empresaId;
+  const esAdmin = login.rol === "admin";
+
+  // Si no tiene empresa y no es admin, no puede crear carpetas (a menos que sean personales?)
+  // Asumiremos que las carpetas pertenecen a la EMPRESA.
+  // Si es admin, puede crear carpetas globales? O debe seleccionar empresa?
+  // Simplificación: Admin crea para "su" contexto o si no tiene empresa es global?
+  // Regla: Carpetas se listan por empresaId. Si es Admin sin empresa, quizás ve todo?
+  // Vamos a obligar a que carpetas tengan empresaId.
+
+  if (!empresaId && !esAdmin)
+    return { success: false, error: "No tienes empresa asignada" };
+
+  // Si es admin creando, y no tiene empresa, crea una carpeta 'global' o requiere seleccionar?
+  // Asumiremos que el admin opera sobre su propia empresa o si está editando la de otro...
+  // Para el MVP: User normal crea en SU empresa.
+
+  const carpetas = obtenerArchivo(DB_CARPETAS, []);
+
+  // Validar duplicados en la misma empresa
+  const existe = carpetas.some(
+    (c) => c.nombre === nombreCarpeta && c.empresaId === empresaId,
+  );
+  if (existe) return { success: false, error: "La carpeta ya existe" };
+
+  const nuevaCarpeta = {
+    id: generarUUID(),
+    nombre: nombreCarpeta,
+    empresaId: empresaId, // Puede ser null si es global/admin root
+    creadoPor: usuarioEmail,
+  };
+
+  carpetas.push(nuevaCarpeta);
+  guardarArchivo(DB_CARPETAS, carpetas);
+
+  return { success: true, carpeta: nuevaCarpeta };
+}
+
+function listarCarpetas(usuarioEmail, clave) {
+  const login = verificarLogin(usuarioEmail, clave);
+  if (!login.success) return login;
+
+  const carpetas = obtenerArchivo(DB_CARPETAS, []);
+
+  // Filtrar por empresa del usuario
+  // Si es admin, quizás quiere ver todas? Por ahora, solo las de su empresa
+  // O las que tengan empresaId null (globales si las hubiera)
+  const misCarpetas = carpetas.filter((c) => c.empresaId === login.empresaId);
+
+  return { success: true, carpetas: misCarpetas };
+}
+
+function subirIcono(usuarioEmail, clave, url, carpetaId) {
+  const login = verificarLogin(usuarioEmail, clave);
+  if (!login.success) return login;
+
+  const empresaId = login.empresaId;
+
+  const iconos = obtenerArchivo(DB_ICONOS, []);
+
+  const nuevoIcono = {
+    id: generarUUID(),
+    url: url,
+    carpetaId: carpetaId,
+    empresaId: empresaId,
+    subidoPor: usuarioEmail,
+    fechaSubida: new Date().toISOString(),
+  };
+
+  iconos.push(nuevoIcono);
+  guardarArchivo(DB_ICONOS, iconos);
+
+  return { success: true, icono: nuevoIcono };
+}
+
+function listarIconos(usuarioEmail, clave) {
+  const login = verificarLogin(usuarioEmail, clave);
+  if (!login.success) return login;
+
+  const iconos = obtenerArchivo(DB_ICONOS, []);
+
+  // Filtrar por empresa
+  const misIconos = iconos.filter((i) => i.empresaId === login.empresaId);
+
+  return { success: true, iconos: misIconos };
+}
+
+function eliminarIcono(usuarioEmail, clave, idIcono) {
+  const login = verificarLogin(usuarioEmail, clave);
+  if (!login.success) return login;
+
+  let iconos = obtenerArchivo(DB_ICONOS, []);
+
+  // Validar permisos: solo dueño, o alguien de la misma empresa (si es colaborativo), o admin
+  const iconoIndex = iconos.findIndex((i) => i.id === idIcono);
+  if (iconoIndex === -1)
+    return { success: false, error: "Icono no encontrado" };
+
+  const icono = iconos[iconoIndex];
+
+  if (login.rol !== "admin" && icono.empresaId !== login.empresaId) {
+    return { success: false, error: "No tienes permisos" };
+  }
+
+  iconos.splice(iconoIndex, 1);
+  guardarArchivo(DB_ICONOS, iconos);
+
+  return { success: true };
+}
+
+// ==================== API WEB (DoPost) ====================
 
 function doPost(e) {
   try {
     const params = JSON.parse(e.postData.contents);
-    
-    let resultado;
-    
+    let resultado = { success: false, error: "Accion desconocida" };
+
     switch (params.accion) {
-      // Bootstrap seguro
-      case 'verificarEstado':
-        resultado = verificarEstadoSistema();
+      // SISTEMA
+      case "verificarEstado":
+        resultado = {
+          hayAdmin: verificarSiHayAdmin(),
+          necesitaBootstrap: !verificarSiHayAdmin(),
+        };
         break;
-        
-      case 'crearPrimerAdmin':
-        resultado = crearPrimerAdmin(
-          params.email,
-          params.nombre,
-          params.clave
-        );
+      case "crearPrimerAdmin":
+        resultado = crearPrimerAdmin(params.email, params.nombre, params.clave);
         break;
-      
-      // Login
-      case 'login':
+      case "login":
         resultado = verificarLogin(params.email, params.clave);
         break;
-        
-      // Gestión de usuarios (admin)
-      case 'crearUsuario':
+
+      // EMPRESAS (Admin)
+      case "crearEmpresa":
+        resultado = crearEmpresa(
+          params.email,
+          params.clave,
+          params.nombreEmpresa,
+        );
+        break;
+      case "listarEmpresas":
+        resultado = listarEmpresas(params.email, params.clave);
+        break;
+      case "eliminarEmpresa":
+        resultado = eliminarEmpresa(
+          params.email,
+          params.clave,
+          params.idEmpresa,
+        );
+        break;
+
+      // USUARIOS
+      case "crearUsuario":
         resultado = crearUsuario(
           params.email,
           params.clave,
           params.nuevoEmail,
           params.nuevoNombre,
           params.nuevaClave,
-          params.empresa,
-          params.esAdmin
+          params.empresaId,
+          params.esAdmin,
         );
         break;
-        
-      case 'listarUsuarios':
+      case "listarUsuarios":
         resultado = listarUsuarios(params.email, params.clave);
         break;
-        
-      case 'editarEmpresaUsuario':
-        resultado = editarEmpresaUsuario(
-          params.email,
-          params.clave,
-          params.usuarioTarget,
-          params.nuevaEmpresa
-        );
-        break;
-        
-      case 'eliminarUsuario':
+      case "eliminarUsuario":
         resultado = eliminarUsuario(
           params.email,
           params.clave,
-          params.usuarioTarget
+          params.usuarioTarget,
         );
         break;
-        
-      default:
-        resultado = { success: false, error: "Acción no reconocida" };
+
+      // CARPETAS Y ICONOS
+      case "crearCarpeta":
+        resultado = crearCarpeta(
+          params.email,
+          params.clave,
+          params.nombreCarpeta,
+        );
+        break;
+      case "listarCarpetas":
+        resultado = listarCarpetas(params.email, params.clave);
+        break;
+      case "subirIcono":
+        resultado = subirIcono(
+          params.email,
+          params.clave,
+          params.url,
+          params.carpetaId,
+        );
+        break;
+      case "listarIconos":
+        resultado = listarIconos(params.email, params.clave);
+        break;
+      case "eliminarIcono":
+        resultado = eliminarIcono(params.email, params.clave, params.idIcono);
+        break;
     }
-    
-    return ContentService
-      .createTextOutput(JSON.stringify(resultado))
-      .setMimeType(ContentService.MimeType.JSON);
-      
+
+    return ContentService.createTextOutput(
+      JSON.stringify(resultado),
+    ).setMimeType(ContentService.MimeType.JSON);
   } catch (error) {
-    return ContentService
-      .createTextOutput(JSON.stringify({
+    return ContentService.createTextOutput(
+      JSON.stringify({
         success: false,
-        error: "Error del servidor: " + error.toString()
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
+        error: "Error servidor: " + error.toString(),
+      }),
+    ).setMimeType(ContentService.MimeType.JSON);
   }
 }
