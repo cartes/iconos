@@ -89,6 +89,7 @@
         .folder-item {
             display: flex;
             align-items: center;
+            justify-content: space-between; /* Para separar texto de acciones */
             padding: 12px 15px;
             border-radius: 8px;
             cursor: pointer;
@@ -102,7 +103,33 @@
             color: #667eea;
             font-weight: 600;
         }
-        .folder-item i { margin-right: 10px; width: 20px; text-align: center; }
+        .folder-content {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+        .folder-content i { margin-right: 10px; width: 20px; text-align: center; }
+        
+        .folder-actions {
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .folder-item:hover .active .folder-actions,
+        .folder-item:hover .folder-actions { opacity: 1; }
+
+        .btn-folder-action {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        .btn-folder-action:hover { color: #667eea; background: rgba(0,0,0,0.05); }
+        .btn-folder-action.delete:hover { color: #dc3545; }
 
         /* CONTENT AREA */
         .content-area {
@@ -414,6 +441,21 @@
         </div>
     </div>
 
+    <!-- MODAL RENOMBRAR CARPETA -->
+    <div id="modalRenombrarCarpeta" class="modal">
+        <div class="modal-content">
+            <h2>Renombrar Carpeta</h2>
+            <div class="form-group">
+                <label>Nuevo Nombre:</label>
+                <input type="text" id="nuevoNombreCarpeta">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="cerrarModales()">Cancelar</button>
+                <button class="btn-primary" onclick="guardarRenombre()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- TOAST -->
     <div id="toast" class="toast">
         <i class="fas fa-check-circle" style="color: #2ecc71;"></i>
@@ -422,7 +464,7 @@
 
     <script>
         // ⚠️ REEMPLAZA CON TU URL
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxL9KZ0l1Yh3TV8jCI_oiPnqlASoY_kLY4_gcNGXhVg5Qc9j3DF-6rA2iAlCtdLVtpF/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNXAz_YHZMW43aFW5qmXaXg8PZoGr0iSFeDW0fmBKQ0aN90bbaNcjd-JFvLFZRepY2/exec';
         
         // Estado
         let usuarioActual = null;
@@ -520,14 +562,32 @@
             const lista = document.getElementById('folderList');
             let html = `
                 <div class="folder-item ${carpetaActiva === 'all' ? 'active' : ''}" onclick="filtrar('all')">
-                    <i class="fas fa-th-large"></i> Todos los Iconos
+                    <div class="folder-content">
+                        <i class="fas fa-th-large"></i> Semua los Iconos
+                    </div>
                 </div>
             `;
             
             carpetasCache.forEach(c => {
+                // Contar iconos
+                const conteo = iconosCache.filter(i => i.carpetaId === c.id).length;
+                const isEmpty = conteo === 0;
+
                 html += `
                     <div class="folder-item ${carpetaActiva === c.id ? 'active' : ''}" onclick="filtrar('${c.id}')">
-                        <i class="fas fa-folder"></i> ${c.nombre}
+                        <div class="folder-content">
+                            <i class="fas fa-folder"></i> ${c.nombre} <span style="font-size: 11px; opacity: 0.5; margin-left: 5px;">(${conteo})</span>
+                        </div>
+                        <div class="folder-actions">
+                            <button class="btn-folder-action" onclick="event.stopPropagation(); abrirModalRenombrar('${c.id}', '${c.nombre}')" title="Renombrar">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                            ${isEmpty ? `
+                                <button class="btn-folder-action delete" onclick="event.stopPropagation(); confirmarEliminarCarpeta('${c.id}')" title="Eliminar">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
                 `;
             });
@@ -695,6 +755,73 @@
 
             boton.textContent = textoOriginal;
             boton.disabled = false;
+        }
+
+        // ==================== ABM CARPETAS ====================
+        let carpetaEnEdicionId = null;
+
+        function abrirModalRenombrar(id, nombreActual) {
+            carpetaEnEdicionId = id;
+            document.getElementById('nuevoNombreCarpeta').value = nombreActual;
+            document.getElementById('modalRenombrarCarpeta').classList.add('activo');
+            document.getElementById('nuevoNombreCarpeta').focus();
+        }
+
+        async function guardarRenombre() {
+            const nuevoNombre = document.getElementById('nuevoNombreCarpeta').value;
+            if (! nuevoNombre || !carpetaEnEdicionId) return;
+            
+            const boton = document.querySelector('#modalRenombrarCarpeta .btn-primary');
+            const textoOriginal = boton.textContent;
+            boton.textContent = 'Guardando...';
+            boton.disabled = true;
+
+            const res = await api('renombrarCarpeta', {
+                idCarpeta: carpetaEnEdicionId,
+                nuevoNombre: nuevoNombre
+            });
+
+            if(res.success) {
+                // Update cache
+                const c = carpetasCache.find(c => c.id === carpetaEnEdicionId);
+                if(c) c.nombre = nuevoNombre;
+                
+                renderSidebar();
+                // Si estoy en esa carpeta, actualizar titulo
+                if(carpetaActiva === carpetaEnEdicionId) {
+                    document.getElementById('tituloSeccion').textContent = nuevoNombre;
+                }
+                
+                cerrarModales();
+                mostrarToast('Carpeta renombrada');
+            } else {
+                alert(res.error);
+            }
+            
+            boton.textContent = textoOriginal;
+            boton.disabled = false;
+        }
+
+        async function confirmarEliminarCarpeta(id) {
+            if(!confirm('¿Eliminar esta carpeta vacía?')) return;
+
+            // Optimistic deletion (or verify count again)
+            // Backend checks emptiness too.
+            
+            const res = await api('eliminarCarpeta', { idCarpeta: id });
+            
+            if(res.success) {
+                carpetasCache = carpetasCache.filter(c => c.id !== id);
+                if(carpetaActiva === id) {
+                    carpetaActiva = 'all';
+                    renderGrid();
+                    document.getElementById('tituloSeccion').textContent = 'Todos los Iconos';
+                }
+                renderSidebar();
+                mostrarToast('Carpeta eliminada');
+            } else {
+                alert(res.error);
+            }
         }
 
         function copiarUrl(url) {

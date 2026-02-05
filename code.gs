@@ -381,6 +381,67 @@ function listarCarpetas(usuarioEmail, clave) {
   return { success: true, carpetas: misCarpetas };
 }
 
+function eliminarCarpeta(usuarioEmail, clave, idCarpeta) {
+  const login = verificarLogin(usuarioEmail, clave);
+  if (!login.success) return login;
+
+  let carpetas = obtenerArchivo(DB_CARPETAS, []);
+
+  const carpetaIndex = carpetas.findIndex((c) => c.id === idCarpeta);
+  if (carpetaIndex === -1)
+    return { success: false, error: "Carpeta no encontrada" };
+
+  const carpeta = carpetas[carpetaIndex];
+
+  // Validar permisos (dueño o empresa)
+  if (carpeta.empresaId !== login.empresaId)
+    return { success: false, error: "No tienes permisos" };
+
+  // Validar que esté vacía
+  const iconos = obtenerArchivo(DB_ICONOS, []);
+  const tieneIconos = iconos.some((i) => i.carpetaId === idCarpeta);
+
+  if (tieneIconos) {
+    return {
+      success: false,
+      error: "La carpeta no está vacía. Elimina los iconos primero.",
+    };
+  }
+
+  carpetas.splice(carpetaIndex, 1);
+  guardarArchivo(DB_CARPETAS, carpetas);
+
+  return { success: true };
+}
+
+function renombrarCarpeta(usuarioEmail, clave, idCarpeta, nuevoNombre) {
+  const login = verificarLogin(usuarioEmail, clave);
+  if (!login.success) return login;
+
+  let carpetas = obtenerArchivo(DB_CARPETAS, []);
+
+  const carpeta = carpetas.find((c) => c.id === idCarpeta);
+  if (!carpeta) return { success: false, error: "Carpeta no encontrada" };
+
+  if (carpeta.empresaId !== login.empresaId)
+    return { success: false, error: "No tienes permisos" };
+
+  // Validar duplicados (opcional, pero recomendado)
+  const existe = carpetas.some(
+    (c) =>
+      c.nombre === nuevoNombre &&
+      c.empresaId === login.empresaId &&
+      c.id !== idCarpeta,
+  );
+  if (existe)
+    return { success: false, error: "Ya existe una carpeta con ese nombre" };
+
+  carpeta.nombre = nuevoNombre;
+  guardarArchivo(DB_CARPETAS, carpetas);
+
+  return { success: true };
+}
+
 function subirIcono(usuarioEmail, clave, url, carpetaId, etiqueta) {
   const login = verificarLogin(usuarioEmail, clave);
   if (!login.success) return login;
@@ -538,6 +599,21 @@ function doPost(e) {
           params.email,
           params.clave,
           params.nombreCarpeta,
+        );
+        break;
+      case "eliminarCarpeta":
+        resultado = eliminarCarpeta(
+          params.email,
+          params.clave,
+          params.idCarpeta,
+        );
+        break;
+      case "renombrarCarpeta":
+        resultado = renombrarCarpeta(
+          params.email,
+          params.clave,
+          params.idCarpeta,
+          params.nuevoNombre,
         );
         break;
       case "listarCarpetas":
