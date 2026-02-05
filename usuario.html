@@ -269,6 +269,25 @@
             margin-bottom: 15px;
         }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* TOOLTIP */
+        .custom-tooltip {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            pointer-events: none;
+            z-index: 3000;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .custom-tooltip.visible {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -336,6 +355,10 @@
             <div class="form-group">
                 <label>URL de la Imagen:</label>
                 <input type="url" id="urlIcono" placeholder="https://ejemplo.com/icono.png">
+            </div>
+            <div class="form-group">
+                <label>Etiqueta (Opcional):</label>
+                <input type="text" id="etiquetaIcono" placeholder="Ej: Logo Facebook">
             </div>
             <div class="form-group">
                 <label>Carpeta:</label>
@@ -520,7 +543,11 @@
             }
 
             grid.innerHTML = filtrados.map(icono => `
-                <div class="icon-card" onclick="copiarUrl('${icono.url}')">
+                <div class="icon-card" onclick="copiarUrl('${icono.url}')" 
+                     data-label="${icono.etiqueta || ''}"
+                     onmouseenter="showTooltip(event, this)" 
+                     onmouseleave="hideTooltip()"
+                     onmousemove="updateTooltipPosition(event)">
                     <img src="${icono.url}" class="icon-preview" onerror="this.src='https://via.placeholder.com/64?text=Error'">
                     <div class="icon-actions">
                         <button class="btn-icon-action" onclick="event.stopPropagation(); eliminarIcono('${icono.id}')">
@@ -567,6 +594,7 @@
 
         async function subirIcono() {
             const url = document.getElementById('urlIcono').value;
+            const etiqueta = document.getElementById('etiquetaIcono').value;
             const carpetaId = document.getElementById('selectCarpetaIcono').value;
             
             if (!url) return alert('Ingresa una URL');
@@ -578,7 +606,8 @@
 
             const res = await api('subirIcono', { 
                 url: url, 
-                carpetaId: carpetaId || null 
+                carpetaId: carpetaId || null,
+                etiqueta: etiqueta
             });
 
             if (res.success) {
@@ -659,6 +688,59 @@
             toast.querySelector('span').textContent = texto;
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ==================== TOOLTIP LOGIC ====================
+        let tooltipElem = null;
+
+        function createTooltip() {
+            if (!tooltipElem) {
+                tooltipElem = document.createElement('div');
+                tooltipElem.className = 'custom-tooltip';
+                document.body.appendChild(tooltipElem);
+            }
+        }
+
+        function showTooltip(e, element) {
+            const label = element.getAttribute('data-label');
+            if (!label) return;
+
+            createTooltip();
+            tooltipElem.textContent = label;
+            tooltipElem.classList.add('visible');
+            updateTooltipPosition(e);
+        }
+
+        function hideTooltip() {
+            if (tooltipElem) {
+                tooltipElem.classList.remove('visible');
+            }
+        }
+
+        function updateTooltipPosition(e) {
+            if (!tooltipElem || !tooltipElem.classList.contains('visible')) return;
+
+            const offset = 15; // distancia del cursor
+            let left = e.pageX + offset;
+            let top = e.pageY + offset;
+
+            // Detección de bordes
+            const tooltipRect = tooltipElem.getBoundingClientRect();
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+
+            // Si se sale por la derecha
+            if (left + tooltipRect.width > windowWidth) {
+                left = e.pageX - tooltipRect.width - offset;
+            }
+
+            // Si se sale por abajo (opcional, aunque el pedido era principalmente borde lateral)
+            if (top + tooltipRect.height > windowHeight) {
+                top = e.pageY - tooltipRect.height - offset;
+            }
+
+            tooltipElem.style.left = `${left}px`;
+            tooltipElem.style.top = `${top}px`;
         }
 
         function logout() {

@@ -381,7 +381,7 @@ function listarCarpetas(usuarioEmail, clave) {
   return { success: true, carpetas: misCarpetas };
 }
 
-function subirIcono(usuarioEmail, clave, url, carpetaId) {
+function subirIcono(usuarioEmail, clave, url, carpetaId, etiqueta) {
   const login = verificarLogin(usuarioEmail, clave);
   if (!login.success) return login;
 
@@ -393,6 +393,7 @@ function subirIcono(usuarioEmail, clave, url, carpetaId) {
     id: generarUUID(),
     url: url,
     carpetaId: carpetaId,
+    etiqueta: etiqueta || "", // Nuevo campo
     empresaId: empresaId,
     subidoPor: usuarioEmail,
     fechaSubida: new Date().toISOString(),
@@ -523,6 +524,7 @@ function doPost(e) {
           params.clave,
           params.url,
           params.carpetaId,
+          params.etiqueta, // Nuevo
         );
         break;
       case "listarIconos":
