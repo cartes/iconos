@@ -307,6 +307,42 @@ function listarUsuarios(emailAdmin, claveAdmin) {
   return { success: true, usuarios: listado };
 }
 
+function editarUsuario(emailAdmin, claveAdmin, targetEmail, datos) {
+  const auth = verificarAdmin(emailAdmin, claveAdmin);
+  if (!auth.success) return auth;
+
+  let usuarios = obtenerArchivo(DB_USUARIOS, {});
+  const user = usuarios[targetEmail];
+
+  if (!user) return { success: false, error: "Usuario no existe" };
+
+  // Actualizar datos básicos
+  if (datos.nombre) user.nombre = datos.nombre;
+
+  // Actualizar empresa
+  if (datos.empresaId !== undefined) {
+    user.empresaId = datos.empresaId;
+    // Buscar nombre empresa para cache
+    const empresas = obtenerArchivo(DB_EMPRESAS, []);
+    const emp = empresas.find((e) => e.id === datos.empresaId);
+    user.empresaNombre = emp ? emp.nombre : null;
+  }
+
+  // Actualizar clave (opcional)
+  if (datos.nuevaClave && datos.nuevaClave.length >= 8) {
+    const hash = Utilities.base64Encode(
+      Utilities.computeDigest(
+        Utilities.DigestAlgorithm.SHA_256,
+        datos.nuevaClave,
+      ),
+    );
+    user.hash = hash;
+  }
+
+  guardarArchivo(DB_USUARIOS, usuarios);
+  return { success: true };
+}
+
 function eliminarUsuario(emailAdmin, claveAdmin, usuarioTarget) {
   const auth = verificarAdmin(emailAdmin, claveAdmin);
   if (!auth.success) return auth;
@@ -584,6 +620,14 @@ function doPost(e) {
         break;
       case "listarUsuarios":
         resultado = listarUsuarios(params.email, params.clave);
+        break;
+      case "editarUsuario":
+        resultado = editarUsuario(
+          params.email,
+          params.clave,
+          params.targetEmail,
+          params.datos,
+        );
         break;
       case "eliminarUsuario":
         resultado = eliminarUsuario(

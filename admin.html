@@ -356,9 +356,37 @@
         </div>
     </div>
 
+    <!-- MODAL EDITAR USUARIO -->
+    <div id="modalEditarUsuario" class="modal">
+        <div class="modal-content">
+            <h2>Editar Usuario <span id="editarUsuarioEmailDisplay" style="font-size: 14px; opacity: 0.6;"></span></h2>
+            <div id="mensajeModalEditarUsuario" class="mensaje"></div>
+            <div class="form-group">
+                <label>Nombre:</label>
+                <input type="text" id="editarNombre" placeholder="Juan Pérez">
+            </div>
+            <div class="form-group">
+                <label>Asignar Empresa:</label>
+                <select id="editarEmpresaId">
+                    <option value="">-- Seleccionar --</option>
+                    <!-- Dinámico -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Nueva Contraseña (Opcional):</label>
+                <input type="password" id="editarClave" placeholder="Dejar vacío para mantener">
+                <small style="color: #666;">Ingresa una nueva contraseña solo si deseas cambiarla.</small>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="cerrarModales()" style="background: #999; color: white;">Cancelar</button>
+                <button class="btn btn-primary" onclick="guardarEdicionUsuario()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ⚠️ REEMPLAZA CON TU URL SI CAMBIA
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNXAz_YHZMW43aFW5qmXaXg8PZoGr0iSFeDW0fmBKQ0aN90bbaNcjd-JFvLFZRepY2/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwH8UArErTudEEiTkjrNPCIuFJbYJaQzXAscW0A7HPDQLhwvZVgrXExPgmXqKOHGDeK/exec';
         
         let usuarioActual = null;
         let claveActual = null;
@@ -483,6 +511,7 @@
             const res = await api('listarUsuarios');
             if (res && res.success) {
                 const tbody = document.getElementById('tbodyUsuarios');
+                cacheUsuarios = res.usuarios; // Guardamos cache para editar
                 tbody.innerHTML = res.usuarios.map(u => {
                     const empresaNombre = u.empresaNombre || (u.empresaId ? buscarNombreEmpresa(u.empresaId) : '-');
                     return `
@@ -492,9 +521,13 @@
                         <td><span class="badge ${u.rol === 'admin' ? 'badge-admin' : 'badge-usuario'}">${u.rol}</span></td>
                         <td><span class="badge badge-empresa">${empresaNombre}</span></td>
                         <td>
-                            <button class="btn btn-danger btn-pequeño" onclick="eliminarUsuario('${u.email}')">
-                                <i class="fas fa-trash"></i>
+                            <button class="btn btn-primary btn-pequeño" onclick="abrirModalEditarUsuario('${u.email}')" title="Editar" style="margin-right: 5px; display: inline-flex;">
+                                <i class="fas fa-pencil-alt"></i>
                             </button>
+                            ${u.rol !== 'admin' || u.email !== usuarioActual ? `
+                            <button class="btn btn-danger btn-pequeño" onclick="eliminarUsuario('${u.email}')" title="Eliminar" style="display: inline-flex;">
+                                <i class="fas fa-trash"></i>
+                            </button>` : ''}
                         </td>
                     </tr>
                 `}).join('');
@@ -534,6 +567,63 @@
             const res = await api('eliminarUsuario', { usuarioTarget: email });
             if(res.success) cargarUsuarios();
             else alert(res.error);
+        }
+
+        let usuarioEnEdicionEmail = null;
+        let cacheUsuarios = [];
+
+        function abrirModalEditarUsuario(email) {
+            const user = cacheUsuarios.find(u => u.email === email);
+            if (!user) return;
+            
+            usuarioEnEdicionEmail = email;
+            document.getElementById('editarUsuarioEmailDisplay').textContent = email;
+            document.getElementById('editarNombre').value = user.nombre;
+            document.getElementById('editarClave').value = ''; // Limpiar siempre
+            
+            // Llenar select empresas
+            const select = document.getElementById('editarEmpresaId');
+            select.innerHTML = '<option value="">-- Sin Empresa --</option>' + 
+                cacheEmpresas.map(e => `<option value="${e.id}" ${e.id === user.empresaId ? 'selected' : ''}>${e.nombre}</option>`).join('');
+
+            document.getElementById('modalEditarUsuario').classList.add('activo');
+        }
+
+        async function guardarEdicionUsuario() {
+            if (!usuarioEnEdicionEmail) return;
+
+            const nombre = document.getElementById('editarNombre').value;
+            const empresaId = document.getElementById('editarEmpresaId').value;
+            const nuevaClave = document.getElementById('editarClave').value;
+
+            const boton = document.querySelector('#modalEditarUsuario .btn-primary');
+            const textoOriginal = boton.textContent;
+            boton.textContent = 'Guardando...';
+            boton.disabled = true;
+
+            const datos = {
+                nombre: nombre,
+                empresaId: empresaId || null
+            };
+            if (nuevaClave) datos.nuevaClave = nuevaClave;
+
+            const res = await api('editarUsuario', {
+                targetEmail: usuarioEnEdicionEmail,
+                datos: datos
+            });
+
+            if (res && res.success) {
+                mostrarMensaje('mensajeModalEditarUsuario', 'exito', 'Usuario actualizado');
+                setTimeout(() => {
+                    cerrarModales();
+                    cargarUsuarios();
+                }, 1000);
+            } else {
+                mostrarMensaje('mensajeModalEditarUsuario', 'error', res.error || 'Error al actualizar');
+            }
+
+            boton.textContent = textoOriginal;
+            boton.disabled = false;
         }
 
         // ==================== HELPERS ====================
