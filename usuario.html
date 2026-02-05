@@ -174,6 +174,8 @@
             right: 10px;
             opacity: 0;
             transition: opacity 0.2s;
+            display: flex;
+            gap: 5px;
         }
         .icon-card:hover .icon-actions { opacity: 1; }
         .btn-icon-action {
@@ -374,6 +376,21 @@
         </div>
     </div>
 
+    <!-- MODAL EDITAR ICONO -->
+    <div id="modalEditarIcono" class="modal">
+        <div class="modal-content">
+            <h2>Editar Etiqueta</h2>
+            <div class="form-group">
+                <label>Nueva Etiqueta:</label>
+                <input type="text" id="editarEtiquetaInput" placeholder="Ej: Logo Facebook">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="cerrarModales()">Cancelar</button>
+                <button class="btn-primary" onclick="guardarEdicion()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL CAMBIAR CLAVE -->
     <div id="modalClave" class="modal">
         <div class="modal-content">
@@ -405,7 +422,7 @@
 
     <script>
         // ⚠️ REEMPLAZA CON TU URL
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzF1JlpAdwzrCsEjugtBLHSAiNesKzJYHtNZm6e_oo1W_pMvZCyLHXQa0o0XXs-EA5g/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxL9KZ0l1Yh3TV8jCI_oiPnqlASoY_kLY4_gcNGXhVg5Qc9j3DF-6rA2iAlCtdLVtpF/exec';
         
         // Estado
         let usuarioActual = null;
@@ -550,7 +567,10 @@
                      onmousemove="updateTooltipPosition(event)">
                     <img src="${icono.url}" class="icon-preview" onerror="this.src='https://via.placeholder.com/64?text=Error'">
                     <div class="icon-actions">
-                        <button class="btn-icon-action" onclick="event.stopPropagation(); eliminarIcono('${icono.id}')">
+                        <button class="btn-icon-action" onclick="event.stopPropagation(); abrirModalEditar('${icono.id}', '${icono.etiqueta || ''}')" title="Editar">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                        <button class="btn-icon-action" onclick="event.stopPropagation(); eliminarIcono('${icono.id}')" title="Eliminar">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
@@ -634,6 +654,47 @@
             } else {
                 alert(res.error);
             }
+        }
+
+        // ==================== EDITAR ====================
+        let iconoEnEdicionId = null;
+
+        function abrirModalEditar(id, etiquetaActual) {
+            hideTooltip(); // Ocultar tooltip si estaba abierto
+            iconoEnEdicionId = id;
+            document.getElementById('editarEtiquetaInput').value = etiquetaActual;
+            document.getElementById('modalEditarIcono').classList.add('activo');
+            document.getElementById('editarEtiquetaInput').focus();
+        }
+
+        async function guardarEdicion() {
+            const nuevaEtiqueta = document.getElementById('editarEtiquetaInput').value;
+            if (!iconoEnEdicionId) return;
+
+            const boton = document.querySelector('#modalEditarIcono .btn-primary');
+            const textoOriginal = boton.textContent;
+            boton.textContent = 'Guardando...';
+            boton.disabled = true;
+
+            const res = await api('editarIcono', {
+                idIcono: iconoEnEdicionId,
+                nuevaEtiqueta: nuevaEtiqueta
+            });
+
+            if (res.success) {
+                // Actualizar cache local
+                const icono = iconosCache.find(i => i.id === iconoEnEdicionId);
+                if (icono) icono.etiqueta = nuevaEtiqueta;
+                
+                renderGrid();
+                cerrarModales();
+                mostrarToast('Etiqueta actualizada');
+            } else {
+                alert(res.error);
+            }
+
+            boton.textContent = textoOriginal;
+            boton.disabled = false;
         }
 
         function copiarUrl(url) {

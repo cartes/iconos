@@ -417,6 +417,31 @@ function listarIconos(usuarioEmail, clave) {
   return { success: true, iconos: misIconos };
 }
 
+function editarIcono(usuarioEmail, clave, idIcono, nuevaEtiqueta) {
+  const login = verificarLogin(usuarioEmail, clave);
+  if (!login.success) return login;
+
+  let iconos = obtenerArchivo(DB_ICONOS, []);
+
+  const iconoIndex = iconos.findIndex((i) => i.id === idIcono);
+  if (iconoIndex === -1)
+    return { success: false, error: "Icono no encontrado" };
+
+  const icono = iconos[iconoIndex];
+
+  // Permisos: Admin, Dueño, o Compañero de empresa
+  // (Si es colaborativo, cualquiera de la empresa puede editar. Si es estricto, solo dueño/admin).
+  // Asumiremos colaborativo nivel empresa.
+  if (login.rol !== "admin" && icono.empresaId !== login.empresaId) {
+    return { success: false, error: "No tienes permisos" };
+  }
+
+  icono.etiqueta = nuevaEtiqueta;
+  guardarArchivo(DB_ICONOS, iconos);
+
+  return { success: true };
+}
+
 function eliminarIcono(usuarioEmail, clave, idIcono) {
   const login = verificarLogin(usuarioEmail, clave);
   if (!login.success) return login;
@@ -525,6 +550,14 @@ function doPost(e) {
           params.url,
           params.carpetaId,
           params.etiqueta, // Nuevo
+        );
+        break;
+      case "editarIcono":
+        resultado = editarIcono(
+          params.email,
+          params.clave,
+          params.idIcono,
+          params.nuevaEtiqueta,
         );
         break;
       case "listarIconos":
