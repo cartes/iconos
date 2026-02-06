@@ -98,6 +98,144 @@
         display: block;
         animation: fadeIn 0.3s ease;
       }
+      
+      /* EXPLORER STYLES (Ported from usuario.html) */
+      .main-container {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+        height: 100%; /* Important for admin layout */
+      }
+      .sidebar {
+        width: 260px;
+        background: white;
+        border-right: 1px solid #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+      }
+      .folder-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+      }
+      .folder-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        color: #555;
+        transition: all 0.2s;
+        margin-bottom: 5px;
+      }
+      .folder-item:hover { background: #f8f9fa; color: #333; }
+      .folder-item.activo {
+        background: #eef2ff;
+        color: #667eea;
+        font-weight: 600;
+      }
+      .content-area {
+        flex: 1;
+        padding: 30px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+      .icon-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 25px;
+        padding-bottom: 50px;
+      }
+      .icon-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        transition: all 0.3s;
+        position: relative;
+        border: 1px solid transparent;
+        cursor: pointer;
+        height: 160px;
+        justify-content: center;
+      }
+      .icon-card:hover {
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        transform: translateY(-5px);
+        border-color: #e0e0e0;
+      }
+      .icon-preview {
+        width: 100%;
+        height: 100px;
+        object-fit: contain;
+      }
+      /* Tooltip */
+      .custom-tooltip {
+        position: fixed;
+        background: rgba(0, 0, 0, 0.85);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        pointer-events: none;
+        z-index: 3000;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.2s;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      }
+      .custom-tooltip.visible { opacity: 1; }
+
+      /* Icon Actions */
+      .icon-actions {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        opacity: 0;
+        transition: opacity 0.2s;
+        display: flex;
+        gap: 5px;
+      }
+      .icon-card:hover .icon-actions { opacity: 1; }
+      .btn-icon-action {
+        background: white;
+        border: 1px solid #eee;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        color: #dc3545;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+      }
+      .btn-icon-action:hover { background: #dc3545; color: white; }
+
+      /* TOAST */
+      .toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: #333;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-size: 14px;
+        opacity: 0;
+        transition: all 0.3s;
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
 
       @keyframes fadeIn {
         from {
@@ -506,114 +644,56 @@
         </div>
 
         <!-- EXPLORADOR DE EMPRESA -->
-        <div id="explorerSection" class="section" style="height: 100%">
-          <div
-            class="explorer-header"
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              margin-bottom: 20px;
-              padding-bottom: 10px;
-              border-bottom: 1px solid #eee;
-            "
-          >
-            <div style="display: flex; align-items: center; gap: 15px;">
+        <div id="explorerSection" class="section" style="height: 100%; display: none; flex-direction: column;">
+          <!-- Loading State -->
+          <div id="loadingExplorer" class="loading-state" style="display: none; height: 100%; align-items: center; justify-content: center;">
+            <div class="spinner"></div>
+            <p>Cargando estructura de la empresa...</p>
+          </div>
+
+          <!-- Main Layout -->
+          <div id="explorerBody" class="main-container" style="display: none;">
+            <!-- Sidebar -->
+            <div class="sidebar">
+              <div class="sidebar-header">
+                <h3>Carpetas</h3>
+              </div>
+              <div class="folder-list" id="listaCarpetas">
+                <!-- Dynamic -->
+              </div>
+              <div class="sidebar-footer">
+                Vista de Administrador
+              </div>
+            </div>
+
+            <!-- Content -->
+            <div class="content-area">
+              <div class="content-header">
                 <h2 id="explorerTitle">Explorando Empresa</h2>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button
-                class="btn btn-success"
-                onclick="abrirModalSubirIconoAdmin()"
-                style="padding: 8px 15px; font-size: 13px;"
-                >
-                <i class="fas fa-upload"></i> Agregar Icono
-                </button>
-                <button
-                class="btn"
-                onclick="cerrarExplorer()"
-                style="
-                    background: #eee;
-                    color: #333;
-                    border: none;
-                    padding: 10px 15px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                "
-                >
-                <i class="fas fa-arrow-left"></i> Volver
-                </button>
-            </div>
-          </div>
-
-          <div
-            id="loadingExplorer"
-            style="display: none; text-align: center; padding: 40px"
-          >
-            <i class="fas fa-spinner fa-spin fa-3x" style="color: #667eea"></i>
-            <p style="margin-top: 15px">Cargando estructura de la empresa...</p>
-          </div>
-
-          <div
-            id="explorerBody"
-            class="explorer-container"
-            style="display: none; display: flex; height: 100%; gap: 20px"
-          >
-            <div
-              class="explorer-sidebar"
-              style="
-                width: 250px;
-                border-right: 1px solid #e0e0e0;
-                padding-right: 20px;
-                overflow-y: auto;
-              "
-            >
-              <h4
-                style="
-                  margin-bottom: 15px;
-                  color: #888;
-                  font-size: 12px;
-                  text-transform: uppercase;
-                "
-              >
-                Carpetas
-              </h4>
-              <div id="listaCarpetas">
-                <!-- Dinámico -->
+                <div style="display: flex; gap: 10px;">
+                  <button
+                    class="btn btn-success"
+                    onclick="abrirModalSubirIconoAdmin()"
+                  >
+                    <i class="fas fa-plus-circle"></i> Agregar Icono
+                  </button>
+                  <button
+                    class="btn"
+                    onclick="cerrarExplorer()"
+                    style="background: #eee; color: #333;"
+                  >
+                    <i class="fas fa-arrow-left"></i> Volver
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <div
-              class="explorer-content"
-              style="flex-grow: 1; overflow-y: auto"
-            >
-              <h4
-                id="nombreCarpetaActual"
-                style="margin-bottom: 15px; font-size: 18px"
-              >
-                Todos los Iconos
-              </h4>
-              <div
-                id="gridIconosExplorer"
-                class="icon-grid"
-                style="
-                  display: grid;
-                  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-                  gap: 15px;
-                "
-              >
-                <!-- Dinámico -->
+              <div id="gridIconosExplorer" class="icon-grid">
+                <!-- Dynamic -->
               </div>
-              <div
-                id="sinIconosExplorer"
-                style="
-                  display: none;
-                  text-align: center;
-                  padding: 40px;
-                  color: #999;
-                "
-              >
-                No hay iconos en esta vista.
+              
+              <div id="sinIconosExplorer" class="empty-state" style="display: none;">
+                  <i class="far fa-images"></i>
+                  <p>No hay iconos en esta carpeta.</p>
               </div>
             </div>
           </div>
@@ -800,6 +880,8 @@
 
       var explorerCache = { carpetas: [], iconos: [] };
       let currentExplorerEmpresaId = null; // Para saber a cual subir
+      let currentExplorerEmpresaName = "";
+      let tooltipElem = null;
 
       let cacheEmpresas = []; // Cache local de empresas
 
@@ -1109,6 +1191,7 @@
         document.getElementById("explorerSection").classList.add("activo");
 
         // UI Reset
+        currentExplorerEmpresaName = nombreEmpresa;
         document.getElementById("explorerTitle").textContent =
           `Explorando: ${nombreEmpresa}`;
         document.getElementById("explorerBody").style.display = "none";
@@ -1167,20 +1250,30 @@
       function renderExplorerUI() {
         // Render Sidebar (Carpetas)
         const listaCarpetas = document.getElementById("listaCarpetas");
-        listaCarpetas.innerHTML = `
+        
+        // Calcular conteos (opcional, pero usuario.html lo tiene)
+        const totalIconos = explorerCache.iconos.length;
+
+        let html = `
                 <div class="folder-item activo" onclick="filtrarExplorer('todos', this)">
-                    <i class="fas fa-layer-group"></i> Todos
-                </div>
-                ${explorerCache.carpetas
-                  .map(
-                    (c) => `
-                    <div class="folder-item" onclick="filtrarExplorer('${c.id}', this, '${c.nombre}')">
-                        <i class="fas fa-folder"></i> ${c.nombre}
+                    <div class="folder-content"> <!-- Added wrapper for style consistency -->
+                        <i class="fas fa-th-large"></i> Todos <span style="font-size: 11px; opacity: 0.5; margin-left: 5px;">(${totalIconos})</span>
                     </div>
-                `,
-                  )
-                  .join("")}
+                </div>
             `;
+            
+        html += explorerCache.carpetas.map(c => {
+            const count = explorerCache.iconos.filter(i => i.carpetaId === c.id).length;
+            return `
+                <div class="folder-item" onclick="filtrarExplorer('${c.id}', this, '${c.nombre}')">
+                    <div class="folder-content">
+                        <i class="fas fa-folder"></i> ${c.nombre} <span style="font-size: 11px; opacity: 0.5; margin-left: 5px;">(${count})</span>
+                    </div>
+                </div>
+            `;
+        }).join("");
+
+        listaCarpetas.innerHTML = html;
 
         // Render Inicial (Todos)
         filtrarExplorer("todos", listaCarpetas.firstElementChild);
@@ -1193,8 +1286,13 @@
           .forEach((i) => i.classList.remove("activo"));
         el.classList.add("activo");
 
-        document.getElementById("nombreCarpetaActual").textContent =
-          nombreCarpeta;
+        // Actualizar Titulo con contexto
+        const titulo = document.getElementById("explorerTitle");
+        if (filtro === 'todos') {
+             titulo.textContent = `Explorando: ${currentExplorerEmpresaName}`;
+        } else {
+             titulo.textContent = `Explorando: ${currentExplorerEmpresaName} > ${nombreCarpeta}`;
+        }
 
         let iconosFiltrados = [];
         if (filtro === "todos") {
@@ -1213,15 +1311,21 @@
           placeholder.style.display = "block";
         } else {
           placeholder.style.display = "none";
+          // Render using icon-card + tooltip events + copy URL
           grid.innerHTML = iconosFiltrados
             .map(
               (icon) => `
-                    <div class="icon-item">
-                        <a href="${icon.url}" target="_blank">
-                            <img src="${icon.url}" alt="Icono">
-                        </a>
-                        <span>${icon.etiqueta || "Sin etiqueta"}</span>
-                    </div>
+                <div class="icon-card" 
+                     onclick="copiarUrl('${icon.url}')"
+                     data-label="${icon.etiqueta || ''}"
+                     onmouseenter="showTooltip(event, this)" 
+                     onmouseleave="hideTooltip()"
+                     onmousemove="updateTooltipPosition(event)">
+                    
+                    <img src="${icon.url}" class="icon-preview" onerror="this.src='https://via.placeholder.com/64?text=Error'">
+                    
+                    <!-- Optional: Actions could go here, omitting for now as per plan focus -->
+                </div>
                 `,
             )
             .join("");
@@ -1230,6 +1334,61 @@
 
       function cerrarExplorer() {
         cambiarTab("dashboard");
+      }
+
+      // ==================== TOOLTIPS & HELPERS ====================
+      function createTooltip() {
+        if (!tooltipElem) {
+            tooltipElem = document.createElement('div');
+            tooltipElem.className = 'custom-tooltip';
+            document.body.appendChild(tooltipElem);
+        }
+      }
+
+      function showTooltip(e, element) {
+        const label = element.getAttribute('data-label');
+        if (!label) return;
+
+        createTooltip();
+        tooltipElem.textContent = label;
+        tooltipElem.classList.add('visible');
+        updateTooltipPosition(e);
+      }
+
+      function hideTooltip() {
+        if (tooltipElem) {
+            tooltipElem.classList.remove('visible');
+        }
+      }
+
+      function updateTooltipPosition(e) {
+        if (!tooltipElem || !tooltipElem.classList.contains('visible')) return;
+
+        const offset = 15;
+        let left = e.pageX + offset;
+        let top = e.pageY + offset;
+
+        const tooltipRect = tooltipElem.getBoundingClientRect();
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+
+        if (left + tooltipRect.width > windowWidth) {
+            left = e.pageX - tooltipRect.width - offset;
+        }
+        if (top + tooltipRect.height > windowHeight) {
+            top = e.pageY - tooltipRect.height - offset;
+        }
+
+        tooltipElem.style.left = `${left}px`;
+        tooltipElem.style.top = `${top}px`;
+      }
+
+      function copiarUrl(url) {
+          navigator.clipboard.writeText(url).then(() => {
+              const toast = document.getElementById('toast');
+              toast.classList.add('show');
+              setTimeout(() => toast.classList.remove('show'), 3000);
+          });
       }
 
       // ==================== HELPERS ====================
