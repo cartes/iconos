@@ -361,39 +361,30 @@ function eliminarUsuario(emailAdmin, claveAdmin, usuarioTarget) {
 
 // ==================== GESTIÓN DE CARPETAS Y ICONOS ====================
 
-function crearCarpeta(usuarioEmail, clave, nombreCarpeta) {
+function crearCarpeta(usuarioEmail, clave, nombreCarpeta, targetEmpresaId) {
   const login = verificarLogin(usuarioEmail, clave);
   if (!login.success) return login;
 
-  const empresaId = login.empresaId;
-  const esAdmin = login.rol === "admin";
+  const contextEmpresaId =
+    login.rol === "admin" && targetEmpresaId
+      ? targetEmpresaId
+      : login.empresaId;
 
-  // Si no tiene empresa y no es admin, no puede crear carpetas (a menos que sean personales?)
-  // Asumiremos que las carpetas pertenecen a la EMPRESA.
-  // Si es admin, puede crear carpetas globales? O debe seleccionar empresa?
-  // Simplificación: Admin crea para "su" contexto o si no tiene empresa es global?
-  // Regla: Carpetas se listan por empresaId. Si es Admin sin empresa, quizás ve todo?
-  // Vamos a obligar a que carpetas tengan empresaId.
-
-  if (!empresaId && !esAdmin)
+  if (!contextEmpresaId)
     return { success: false, error: "No tienes empresa asignada" };
-
-  // Si es admin creando, y no tiene empresa, crea una carpeta 'global' o requiere seleccionar?
-  // Asumiremos que el admin opera sobre su propia empresa o si está editando la de otro...
-  // Para el MVP: User normal crea en SU empresa.
 
   const carpetas = obtenerArchivo(DB_CARPETAS, []);
 
   // Validar duplicados en la misma empresa
   const existe = carpetas.some(
-    (c) => c.nombre === nombreCarpeta && c.empresaId === empresaId,
+    (c) => c.nombre === nombreCarpeta && c.empresaId === contextEmpresaId,
   );
   if (existe) return { success: false, error: "La carpeta ya existe" };
 
   const nuevaCarpeta = {
     id: generarUUID(),
     nombre: nombreCarpeta,
-    empresaId: empresaId, // Puede ser null si es global/admin root
+    empresaId: contextEmpresaId,
     creadoPor: usuarioEmail,
   };
 
@@ -403,16 +394,18 @@ function crearCarpeta(usuarioEmail, clave, nombreCarpeta) {
   return { success: true, carpeta: nuevaCarpeta };
 }
 
-function listarCarpetas(usuarioEmail, clave) {
+function listarCarpetas(usuarioEmail, clave, targetEmpresaId) {
   const login = verificarLogin(usuarioEmail, clave);
   if (!login.success) return login;
 
-  const carpetas = obtenerArchivo(DB_CARPETAS, []);
+  // Determine context: Admin override or user's own company
+  const contextEmpresaId =
+    login.rol === "admin" && targetEmpresaId
+      ? targetEmpresaId
+      : login.empresaId;
 
-  // Filtrar por empresa del usuario
-  // Si es admin, quizás quiere ver todas? Por ahora, solo las de su empresa
-  // O las que tengan empresaId null (globales si las hubiera)
-  const misCarpetas = carpetas.filter((c) => c.empresaId === login.empresaId);
+  const carpetas = obtenerArchivo(DB_CARPETAS, []);
+  const misCarpetas = carpetas.filter((c) => c.empresaId === contextEmpresaId);
 
   return { success: true, carpetas: misCarpetas };
 }
@@ -429,8 +422,8 @@ function eliminarCarpeta(usuarioEmail, clave, idCarpeta) {
 
   const carpeta = carpetas[carpetaIndex];
 
-  // Validar permisos (dueño o empresa)
-  if (carpeta.empresaId !== login.empresaId)
+  // Validar permisos: Admin puede borrar cualquiera, usuario solo suyas
+  if (login.rol !== "admin" && carpeta.empresaId !== login.empresaId)
     return { success: false, error: "No tienes permisos" };
 
   // Validar que esté vacía
@@ -459,14 +452,15 @@ function renombrarCarpeta(usuarioEmail, clave, idCarpeta, nuevoNombre) {
   const carpeta = carpetas.find((c) => c.id === idCarpeta);
   if (!carpeta) return { success: false, error: "Carpeta no encontrada" };
 
-  if (carpeta.empresaId !== login.empresaId)
+  // Admin bypass or same company
+  if (login.rol !== "admin" && carpeta.empresaId !== login.empresaId)
     return { success: false, error: "No tienes permisos" };
 
-  // Validar duplicados (opcional, pero recomendado)
+  // Validar duplicados en el contexto de la carpeta
   const existe = carpetas.some(
     (c) =>
       c.nombre === nuevoNombre &&
-      c.empresaId === login.empresaId &&
+      c.empresaId === carpeta.empresaId && // Chequear en la misma empresa
       c.id !== idCarpeta,
   );
   if (existe)
@@ -478,11 +472,21 @@ function renombrarCarpeta(usuarioEmail, clave, idCarpeta, nuevoNombre) {
   return { success: true };
 }
 
-function subirIcono(usuarioEmail, clave, url, carpetaId, etiqueta) {
+function subirIcono(
+  usuarioEmail,
+  clave,
+  url,
+  carpetaId,
+  etiqueta,
+  targetEmpresaId,
+) {
   const login = verificarLogin(usuarioEmail, clave);
   if (!login.success) return login;
 
-  const empresaId = login.empresaId;
+  const contextEmpresaId =
+    login.rol === "admin" && targetEmpresaId
+      ? targetEmpresaId
+      : login.empresaId;
 
   const iconos = obtenerArchivo(DB_ICONOS, []);
 
@@ -491,7 +495,7 @@ function subirIcono(usuarioEmail, clave, url, carpetaId, etiqueta) {
     url: url,
     carpetaId: carpetaId,
     etiqueta: etiqueta || "", // Nuevo campo
-    empresaId: empresaId,
+    empresaId: contextEmpresaId,
     subidoPor: usuarioEmail,
     fechaSubida: new Date().toISOString(),
   };
@@ -502,14 +506,19 @@ function subirIcono(usuarioEmail, clave, url, carpetaId, etiqueta) {
   return { success: true, icono: nuevoIcono };
 }
 
-function listarIconos(usuarioEmail, clave) {
+function listarIconos(usuarioEmail, clave, targetEmpresaId) {
   const login = verificarLogin(usuarioEmail, clave);
   if (!login.success) return login;
+
+  const contextEmpresaId =
+    login.rol === "admin" && targetEmpresaId
+      ? targetEmpresaId
+      : login.empresaId;
 
   const iconos = obtenerArchivo(DB_ICONOS, []);
 
   // Filtrar por empresa
-  const misIconos = iconos.filter((i) => i.empresaId === login.empresaId);
+  const misIconos = iconos.filter((i) => i.empresaId === contextEmpresaId);
 
   return { success: true, iconos: misIconos };
 }
@@ -643,6 +652,7 @@ function doPost(e) {
           params.email,
           params.clave,
           params.nombreCarpeta,
+          params.targetEmpresaId, // Optional param
         );
         break;
       case "eliminarCarpeta":
@@ -661,7 +671,11 @@ function doPost(e) {
         );
         break;
       case "listarCarpetas":
-        resultado = listarCarpetas(params.email, params.clave);
+        resultado = listarCarpetas(
+          params.email,
+          params.clave,
+          params.targetEmpresaId, // Optional param
+        );
         break;
       case "subirIcono":
         resultado = subirIcono(
@@ -669,7 +683,8 @@ function doPost(e) {
           params.clave,
           params.url,
           params.carpetaId,
-          params.etiqueta, // Nuevo
+          params.etiqueta,
+          params.targetEmpresaId, // Optional param
         );
         break;
       case "editarIcono":
@@ -681,7 +696,11 @@ function doPost(e) {
         );
         break;
       case "listarIconos":
-        resultado = listarIconos(params.email, params.clave);
+        resultado = listarIconos(
+          params.email,
+          params.clave,
+          params.targetEmpresaId, // Optional param
+        );
         break;
       case "eliminarIcono":
         resultado = eliminarIcono(params.email, params.clave, params.idIcono);

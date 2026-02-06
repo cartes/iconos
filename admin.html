@@ -643,61 +643,7 @@
           </table>
         </div>
 
-        <!-- EXPLORADOR DE EMPRESA -->
-        <div id="explorerSection" class="section" style="height: 100%; display: none; flex-direction: column;">
-          <!-- Loading State -->
-          <div id="loadingExplorer" class="loading-state" style="display: none; height: 100%; align-items: center; justify-content: center;">
-            <div class="spinner"></div>
-            <p>Cargando estructura de la empresa...</p>
-          </div>
 
-          <!-- Main Layout -->
-          <div id="explorerBody" class="main-container" style="display: none;">
-            <!-- Sidebar -->
-            <div class="sidebar">
-              <div class="sidebar-header">
-                <h3>Carpetas</h3>
-              </div>
-              <div class="folder-list" id="listaCarpetas">
-                <!-- Dynamic -->
-              </div>
-              <div class="sidebar-footer">
-                Vista de Administrador
-              </div>
-            </div>
-
-            <!-- Content -->
-            <div class="content-area">
-              <div class="content-header">
-                <h2 id="explorerTitle">Explorando Empresa</h2>
-                <div style="display: flex; gap: 10px;">
-                  <button
-                    class="btn btn-success"
-                    onclick="abrirModalSubirIconoAdmin()"
-                  >
-                    <i class="fas fa-plus-circle"></i> Agregar Icono
-                  </button>
-                  <button
-                    class="btn"
-                    onclick="cerrarExplorer()"
-                    style="background: #eee; color: #333;"
-                  >
-                    <i class="fas fa-arrow-left"></i> Volver
-                  </button>
-                </div>
-              </div>
-
-              <div id="gridIconosExplorer" class="icon-grid">
-                <!-- Dynamic -->
-              </div>
-              
-              <div id="sinIconosExplorer" class="empty-state" style="display: none;">
-                  <i class="far fa-images"></i>
-                  <p>No hay iconos en esta carpeta.</p>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -873,7 +819,7 @@
     <script>
       // ⚠️ REEMPLAZA CON TU URL SI CAMBIA
       const APPS_SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbwH8UArErTudEEiTkjrNPCIuFJbYJaQzXAscW0A7HPDQLhwvZVgrXExPgmXqKOHGDeK/exec";
+        "https://script.google.com/macros/s/AKfycbzFQvAsiGwX2M22kEqv8SV8j83GG0XeAAVefS7XoNQ47wqO1UW4bhew6Q8XCWRWa4zL/exec";
 
       let usuarioActual = null;
       let claveActual = null;
@@ -1181,214 +1127,13 @@
 
 
 
-      async function explorarEmpresa(empresaId, nombreEmpresa) {
+      function explorarEmpresa(empresaId, nombreEmpresa) {
         if (!usuarioActual) return;
-
-        // 1. Mostrar Sección Explorer
-        document
-          .querySelectorAll(".section")
-          .forEach((s) => s.classList.remove("activo"));
-        document.getElementById("explorerSection").classList.add("activo");
-
-        // UI Reset
-        currentExplorerEmpresaName = nombreEmpresa;
-        document.getElementById("explorerTitle").textContent =
-          `Explorando: ${nombreEmpresa}`;
-        document.getElementById("explorerBody").style.display = "none";
-        document.getElementById("loadingExplorer").style.display = "block";
-
-        try {
-          // Paso 1: Cambiar contexto a la empresa
-          console.log("Cambiando contexto...", empresaId);
-          const resCambio = await api("editarUsuario", {
-            targetEmail: usuarioActual,
-            datos: { empresaId: empresaId },
-          });
-
-          if (!resCambio || !resCambio.success)
-            throw new Error("Error cambiando contexto");
-
-          // Paso 2: Fetch paralelo de Carpetas e Iconos (como si fuera el admin de esa empresa)
-          console.log("Obteniendo datos...");
-          const [resCarpetas, resIconos] = await Promise.all([
-            api("listarCarpetas"),
-            api("listarIconos"),
-          ]);
-
-          // Paso 3: Restaurar contexto inmediatamente
-          console.log("Restaurando contexto...");
-          await api("editarUsuario", {
-            targetEmail: usuarioActual,
-            datos: { empresaId: null },
-          });
-
-          // Paso 4: Renderizar
-          if (resCarpetas.success && resIconos.success) {
-            explorerCache.carpetas = resCarpetas.carpetas;
-            explorerCache.iconos = resIconos.iconos;
-
-            renderExplorerUI();
-
-            document.getElementById("loadingExplorer").style.display = "none";
-            document.getElementById("explorerBody").style.display = "flex";
-          } else {
-            alert("Error obteniendo datos parciales");
-            cerrarExplorer();
-          }
-        } catch (e) {
-          console.error(e);
-          alert("Error: " + e.message);
-          // Intento final de restaurar por seguridad
-          await api("editarUsuario", {
-            targetEmail: usuarioActual,
-            datos: { empresaId: null },
-          });
-          cerrarExplorer();
-        }
-      }
-
-      function renderExplorerUI() {
-        // Render Sidebar (Carpetas)
-        const listaCarpetas = document.getElementById("listaCarpetas");
-        
-        // Calcular conteos (opcional, pero usuario.html lo tiene)
-        const totalIconos = explorerCache.iconos.length;
-
-        let html = `
-                <div class="folder-item activo" onclick="filtrarExplorer('todos', this)">
-                    <div class="folder-content"> <!-- Added wrapper for style consistency -->
-                        <i class="fas fa-th-large"></i> Todos <span style="font-size: 11px; opacity: 0.5; margin-left: 5px;">(${totalIconos})</span>
-                    </div>
-                </div>
-            `;
-            
-        html += explorerCache.carpetas.map(c => {
-            const count = explorerCache.iconos.filter(i => i.carpetaId === c.id).length;
-            return `
-                <div class="folder-item" onclick="filtrarExplorer('${c.id}', this, '${c.nombre}')">
-                    <div class="folder-content">
-                        <i class="fas fa-folder"></i> ${c.nombre} <span style="font-size: 11px; opacity: 0.5; margin-left: 5px;">(${count})</span>
-                    </div>
-                </div>
-            `;
-        }).join("");
-
-        listaCarpetas.innerHTML = html;
-
-        // Render Inicial (Todos)
-        filtrarExplorer("todos", listaCarpetas.firstElementChild);
-      }
-
-      function filtrarExplorer(filtro, el, nombreCarpeta = "Todos") {
-        // Actualizar activo
-        document
-          .querySelectorAll(".folder-item")
-          .forEach((i) => i.classList.remove("activo"));
-        el.classList.add("activo");
-
-        // Actualizar Titulo con contexto
-        const titulo = document.getElementById("explorerTitle");
-        if (filtro === 'todos') {
-             titulo.textContent = `Explorando: ${currentExplorerEmpresaName}`;
-        } else {
-             titulo.textContent = `Explorando: ${currentExplorerEmpresaName} > ${nombreCarpeta}`;
-        }
-
-        let iconosFiltrados = [];
-        if (filtro === "todos") {
-          iconosFiltrados = explorerCache.iconos;
-        } else {
-          iconosFiltrados = explorerCache.iconos.filter(
-            (i) => i.carpetaId === filtro,
-          );
-        }
-
-        const grid = document.getElementById("gridIconosExplorer");
-        const placeholder = document.getElementById("sinIconosExplorer");
-
-        if (iconosFiltrados.length === 0) {
-          grid.innerHTML = "";
-          placeholder.style.display = "block";
-        } else {
-          placeholder.style.display = "none";
-          // Render using icon-card + tooltip events + copy URL
-          grid.innerHTML = iconosFiltrados
-            .map(
-              (icon) => `
-                <div class="icon-card" 
-                     onclick="copiarUrl('${icon.url}')"
-                     data-label="${icon.etiqueta || ''}"
-                     onmouseenter="showTooltip(event, this)" 
-                     onmouseleave="hideTooltip()"
-                     onmousemove="updateTooltipPosition(event)">
-                    
-                    <img src="${icon.url}" class="icon-preview" onerror="this.src='https://via.placeholder.com/64?text=Error'">
-                    
-                    <!-- Optional: Actions could go here, omitting for now as per plan focus -->
-                </div>
-                `,
-            )
-            .join("");
-        }
+        window.location.href = `admin_explorer.html?id=${empresaId}&nombre=${encodeURIComponent(nombreEmpresa)}`;
       }
 
       function cerrarExplorer() {
-        cambiarTab("dashboard");
-      }
-
-      // ==================== TOOLTIPS & HELPERS ====================
-      function createTooltip() {
-        if (!tooltipElem) {
-            tooltipElem = document.createElement('div');
-            tooltipElem.className = 'custom-tooltip';
-            document.body.appendChild(tooltipElem);
-        }
-      }
-
-      function showTooltip(e, element) {
-        const label = element.getAttribute('data-label');
-        if (!label) return;
-
-        createTooltip();
-        tooltipElem.textContent = label;
-        tooltipElem.classList.add('visible');
-        updateTooltipPosition(e);
-      }
-
-      function hideTooltip() {
-        if (tooltipElem) {
-            tooltipElem.classList.remove('visible');
-        }
-      }
-
-      function updateTooltipPosition(e) {
-        if (!tooltipElem || !tooltipElem.classList.contains('visible')) return;
-
-        const offset = 15;
-        let left = e.pageX + offset;
-        let top = e.pageY + offset;
-
-        const tooltipRect = tooltipElem.getBoundingClientRect();
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
-
-        if (left + tooltipRect.width > windowWidth) {
-            left = e.pageX - tooltipRect.width - offset;
-        }
-        if (top + tooltipRect.height > windowHeight) {
-            top = e.pageY - tooltipRect.height - offset;
-        }
-
-        tooltipElem.style.left = `${left}px`;
-        tooltipElem.style.top = `${top}px`;
-      }
-
-      function copiarUrl(url) {
-          navigator.clipboard.writeText(url).then(() => {
-              const toast = document.getElementById('toast');
-              toast.classList.add('show');
-              setTimeout(() => toast.classList.remove('show'), 3000);
-          });
+         // Ya no necesario, pero por si acaso.
       }
 
       // ==================== HELPERS ====================
