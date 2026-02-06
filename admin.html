@@ -223,6 +223,49 @@
         .mensaje.error { background: #f8d7da; color: #721c24; }
         
         .loading { opacity: 0.5; pointer-events: none; }
+        
+        /* Grid de Iconos */
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .icon-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .icon-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .icon-item img {
+            max-width: 100%;
+            height: 60px;
+            object-fit: contain;
+            margin-bottom: 5px;
+        }
+        .icon-item span {
+            display: block;
+            font-size: 11px;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .dashboard-companies {
+            margin-top: 30px;
+        }
+        .dashboard-companies h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -254,6 +297,19 @@
             <div id="dashboardSection" class="section activo">
                 <div class="estadisticas" id="estadisticas">
                     <!-- Dinámico -->
+                </div>
+                
+                <div class="dashboard-companies">
+                    <h3>Empresas Registradas</h3>
+                    <table id="tablaDashboardEmpresas">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyDashboardEmpresas"></tbody>
+                    </table>
                 </div>
             </div>
 
@@ -382,6 +438,31 @@
                 <button class="btn btn-primary" onclick="guardarEdicionUsuario()">Guardar Cambios</button>
             </div>
         </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="cerrarModales()" style="background: #999; color: white;">Cancelar</button>
+                <button class="btn btn-primary" onclick="guardarEdicionUsuario()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VER ICONOS -->
+    <div id="modalVerIconos" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Iconos de <span id="tituloIconosEmpresa">Empresa</span></h2>
+                <button onclick="cerrarModales()" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+            <div id="loadingIconos" style="display: none; text-align: center; padding: 20px;">
+                <i class="fas fa-spinner fa-spin fa-2x" style="color: #667eea;"></i>
+                <p>Cargando iconos...</p>
+            </div>
+            <div id="contenedorIconos" class="icon-grid">
+                <!-- Iconos dinámicos -->
+            </div>
+            <div id="sinIconos" style="display: none; text-align: center; padding: 20px; color: #999;">
+                No hay iconos subidos para esta empresa.
+            </div>
+        </div>
     </div>
 
     <script>
@@ -452,6 +533,19 @@
                         <p>Administradores</p>
                     </div>
                 `;
+                
+                // Cargar lista de empresas en dashboard
+                 const tbody = document.getElementById('tbodyDashboardEmpresas');
+                 tbody.innerHTML = empresas.empresas.map(e => `
+                    <tr>
+                        <td><strong>${e.nombre}</strong></td>
+                        <td>
+                            <button class="btn btn-primary btn-pequeño" onclick="verIconosEmpresa('${e.id}', '${e.nombre}')">
+                                <i class="fas fa-images"></i> Ver Iconos
+                            </button>
+                        </td>
+                    </tr>
+                 `).join('');
             }
         }
 
@@ -624,6 +718,81 @@
 
             boton.textContent = textoOriginal;
             boton.disabled = false;
+        }
+
+        // ==================== VISUALIZAR ICONOS (CONTEXT SWITCH) ====================
+        async function verIconosEmpresa(empresaId, nombreEmpresa) {
+            if (!usuarioActual) return;
+            
+            // UI Setup
+            document.getElementById('modalVerIconos').classList.add('activo');
+            document.getElementById('tituloIconosEmpresa').textContent = nombreEmpresa;
+            document.getElementById('contenedorIconos').innerHTML = '';
+            document.getElementById('sinIconos').style.display = 'none';
+            document.getElementById('loadingIconos').style.display = 'block';
+
+            try {
+                // 1. Obtener mi estado actual para restaurarlo
+                // Asumimos que somos admin y nuestra empresa actual es null o cualquiera.
+                // Como no tenemos un "getUser", usaremos el comportamiento por defecto.
+                // IMPORTANTE: Primero cambiamos contexto.
+                
+                // Paso 1: Cambiar mi empresaId a la target
+                console.log("Cambiando contexto a empresa:", empresaId);
+                const resCambio = await api('editarUsuario', {
+                   targetEmail: usuarioActual,
+                   datos: { empresaId: empresaId } 
+                });
+                
+                if (!resCambio || !resCambio.success) {
+                    throw new Error("No se pudo cambiar contexto: " + (resCambio?.error || 'Error desconocido'));
+                }
+                
+                // Paso 2: Listar Iconos (ahora soy de esa empresa)
+                console.log("Listando iconos...");
+                const resIconos = await api('listarIconos');
+                
+                // Paso 3: Restaurar mi contexto (volver a empresa null/admin global)
+                // Ojo: Si el admin tenía una empresa asignada, aquí la perdería si ponemos null.
+                // Idealmente deberíamos saber cuál era antes. 
+                // Para este MVP asumimos que el Super Admin no pertenece a ninguna empresa (null).
+                console.log("Restaurando contexto...");
+                await api('editarUsuario', {
+                   targetEmail: usuarioActual,
+                   datos: { empresaId: null } 
+                });
+                
+                if (resIconos && resIconos.success) {
+                     const iconos = resIconos.iconos;
+                     document.getElementById('loadingIconos').style.display = 'none';
+                     
+                     if (iconos.length === 0) {
+                         document.getElementById('sinIconos').style.display = 'block';
+                     } else {
+                         document.getElementById('contenedorIconos').innerHTML = iconos.map(icon => `
+                            <div class="icon-item">
+                                <a href="${icon.url}" target="_blank">
+                                    <img src="${icon.url}" alt="Icono">
+                                </a>
+                                <span>${icon.etiqueta || 'Sin etiqueta'}</span>
+                            </div>
+                         `).join('');
+                     }
+                } else {
+                    alert('Error al obtener iconos');
+                }
+                
+            } catch (e) {
+                console.error(e);
+                alert("Error en el proceso: " + e.message);
+                document.getElementById('loadingIconos').style.display = 'none';
+                
+                // Intentar restaurar por si acaso falló a medio camino
+                await api('editarUsuario', {
+                   targetEmail: usuarioActual,
+                   datos: { empresaId: null } 
+                });
+            }
         }
 
         // ==================== HELPERS ====================
