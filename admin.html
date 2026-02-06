@@ -285,31 +285,72 @@
         overflow-y: auto;
         margin-top: 20px;
       }
-      .icon-item {
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 10px;
-        text-align: center;
-        transition: all 0.2s;
-      }
-      .icon-item:hover {
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
-      }
-      .icon-item img {
-        max-width: 100%;
-        height: 60px;
-        object-fit: contain;
-        margin-bottom: 5px;
-      }
-      .icon-item span {
-        display: block;
-        font-size: 11px;
-        color: #666;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+        /* Updated Icon Item for Hover/Actions */
+        .icon-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+        }
+        .icon-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            border-color: #667eea;
+        }
+        .icon-item img {
+            max-width: 100%;
+            height: 60px;
+            object-fit: contain;
+            margin-bottom: 5px;
+        }
+        .icon-item span {
+            display: block;
+            font-size: 11px;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Tooltip */
+        .custom-tooltip {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            pointer-events: none;
+            z-index: 3000;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .custom-tooltip.visible { opacity: 1; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
       .dashboard-companies {
         margin-top: 30px;
@@ -477,21 +518,32 @@
               border-bottom: 1px solid #eee;
             "
           >
-            <h2 id="explorerTitle">Explorando Empresa</h2>
-            <button
-              class="btn"
-              onclick="cerrarExplorer()"
-              style="
-                background: #eee;
-                color: #333;
-                border: none;
-                padding: 10px 15px;
-                border-radius: 5px;
-                cursor: pointer;
-              "
-            >
-              <i class="fas fa-arrow-left"></i> Volver al Dashboard
-            </button>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <h2 id="explorerTitle">Explorando Empresa</h2>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button
+                class="btn btn-success"
+                onclick="abrirModalSubirIconoAdmin()"
+                style="padding: 8px 15px; font-size: 13px;"
+                >
+                <i class="fas fa-upload"></i> Agregar Icono
+                </button>
+                <button
+                class="btn"
+                onclick="cerrarExplorer()"
+                style="
+                    background: #eee;
+                    color: #333;
+                    border: none;
+                    padding: 10px 15px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                "
+                >
+                <i class="fas fa-arrow-left"></i> Volver
+                </button>
+            </div>
           </div>
 
           <div
@@ -703,6 +755,37 @@
           </button>
         </div>
       </div>
+    <!-- MODAL SUBIR ICONO ADMIN -->
+    <div id="modalSubirIconoAdmin" class="modal">
+      <div class="modal-content">
+        <h2>Agregar Icono a Empresa</h2>
+        <div id="mensajeModalSubirIcono" class="mensaje"></div>
+        <div class="form-group">
+          <label>URL de la Imagen:</label>
+          <input type="url" id="urlIconoAdmin" placeholder="https://ejemplo.com/icono.png">
+        </div>
+        <div class="form-group">
+          <label>Etiqueta:</label>
+          <input type="text" id="etiquetaIconoAdmin" placeholder="Ej: Logo Facebook">
+        </div>
+        <div class="form-group">
+          <label>Carpeta de Destino:</label>
+          <select id="selectCarpetaIconoAdmin">
+            <option value="">-- Sin Carpeta (General) --</option>
+            <!-- Dinámico -->
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button class="btn" onclick="cerrarModales()" style="background: #999; color: white">Cancelar</button>
+          <button class="btn btn-primary" onclick="subirIconoAdmin()">Guardar Icono</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- TOAST -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle" style="color: #2ecc71;"></i>
+        <span>URL copiada al portapapeles</span>
     </div>
 
     <!-- ELIMINADO MODAL VER ICONOS ANTERIOR -->
@@ -714,6 +797,9 @@
 
       let usuarioActual = null;
       let claveActual = null;
+
+      let explorerCache = { carpetas: [], iconos: [] };
+      let currentExplorerEmpresaId = null; // Para saber a cual subir
 
       let cacheEmpresas = []; // Cache local de empresas
 
@@ -1011,7 +1097,7 @@
 
       // ==================== EXPLORADOR DE EMPRESA (Full Page) ====================
 
-      let explorerCache = { carpetas: [], iconos: [] };
+
 
       async function explorarEmpresa(empresaId, nombreEmpresa) {
         if (!usuarioActual) return;
@@ -1057,6 +1143,7 @@
           if (resCarpetas.success && resIconos.success) {
             explorerCache.carpetas = resCarpetas.carpetas;
             explorerCache.iconos = resIconos.iconos;
+            currentExplorerEmpresaId = empresaId; // Guardar ID actual
 
             renderExplorerUI();
 
@@ -1075,8 +1162,75 @@
             datos: { empresaId: null },
           });
           cerrarExplorer();
+
+
+        function abrirModalSubirIconoAdmin() {
+            if (!currentExplorerEmpresaId) return alert("Error: No hay empresa seleccionada");
+            
+            // Llenar select carpetas con las de la empresa actual (cache)
+            const select = document.getElementById('selectCarpetaIconoAdmin');
+            select.innerHTML = '<option value="">-- Sin Carpeta (General) --</option>' + 
+                explorerCache.carpetas.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+            
+            document.getElementById('modalSubirIconoAdmin').classList.add('activo');
         }
-      }
+
+        async function subirIconoAdmin() {
+            const url = document.getElementById('urlIconoAdmin').value;
+            const etiqueta = document.getElementById('etiquetaIconoAdmin').value;
+            const carpetaId = document.getElementById('selectCarpetaIconoAdmin').value;
+            
+            if (!url) return alert('Ingresa una URL');
+
+            const boton = document.querySelector('#modalSubirIconoAdmin .btn-primary');
+            const textoOriginal = boton.textContent;
+            boton.textContent = 'Guardando...';
+            boton.disabled = true;
+
+            try {
+                // 1. Cambio de contexto
+                await api('editarUsuario', {
+                   targetEmail: usuarioActual,
+                   datos: { empresaId: currentExplorerEmpresaId } 
+                });
+
+                // 2. Subir Icono (como si fuera esa empresa)
+                const res = await api('subirIcono', {
+                    url: url,
+                    carpetaId: carpetaId || null,
+                    etiqueta: etiqueta
+                });
+
+                // 3. Restaurar contexto
+                await api('editarUsuario', {
+                   targetEmail: usuarioActual,
+                   datos: { empresaId: null } 
+                });
+
+                if (res.success) {
+                    mostrarMensaje('mensajeModalSubirIcono', 'exito', 'Icono agregado');
+                    // Actualizar vista localmente
+                    explorerCache.iconos.push(res.icono);
+                    
+                    setTimeout(() => {
+                        cerrarModales();
+                        renderExplorerUI(); // Re-render simple
+                        mostrarToast('Icono subido correctamente');
+                    }, 1000);
+                } else {
+                     mostrarMensaje('mensajeModalSubirIcono', 'error', res.error);
+                }
+
+            } catch (e) {
+                console.error(e);
+                alert('Error en el proceso de subida');
+                // Intentar asegurar restauración
+                await api('editarUsuario', { targetEmail: usuarioActual, datos: { empresaId: null } });
+            }
+            
+            boton.textContent = textoOriginal;
+            boton.disabled = false;
+        }
 
       function renderExplorerUI() {
         // Render Sidebar (Carpetas)
@@ -1130,11 +1284,14 @@
           grid.innerHTML = iconosFiltrados
             .map(
               (icon) => `
-                    <div class="icon-item">
-                        <a href="${icon.url}" target="_blank">
-                            <img src="${icon.url}" alt="Icono">
-                        </a>
-                        <span>${icon.etiqueta || "Sin etiqueta"}</span>
+                    <div class="icon-item"
+                         onclick="copiarUrl('${icon.url}')"
+                         data-label="${icon.etiqueta || ''}"
+                         onmouseenter="showTooltip(event, this)" 
+                         onmouseleave="hideTooltip()"
+                         onmousemove="updateTooltipPosition(event)">
+                        <img src="${icon.url}" alt="Icono" onerror="this.src='https://via.placeholder.com/64?text=ABC'">
+                        <span>${icon.etiqueta || 'Sin etiqueta'}</span>
                     </div>
                 `,
             )
@@ -1143,7 +1300,60 @@
       }
 
       function cerrarExplorer() {
+        currentExplorerEmpresaId = null;
         cambiarTab("dashboard");
+      }
+
+      // ==================== TOOLTIP & COPY ====================
+      let tooltipElem = null;
+
+      function createTooltip() {
+          if (!tooltipElem) {
+              tooltipElem = document.createElement('div');
+              tooltipElem.className = 'custom-tooltip';
+              document.body.appendChild(tooltipElem);
+          }
+      }
+
+      function showTooltip(e, element) {
+          const label = element.getAttribute('data-label');
+          if (!label) return;
+
+          createTooltip();
+          tooltipElem.textContent = label;
+          tooltipElem.classList.add('visible');
+          updateTooltipPosition(e);
+      }
+
+      function hideTooltip() {
+          if (tooltipElem) tooltipElem.classList.remove('visible');
+      }
+
+      function updateTooltipPosition(e) {
+          if (!tooltipElem || !tooltipElem.classList.contains('visible')) return;
+          const offset = 15;
+          let left = e.pageX + offset;
+          let top = e.pageY + offset;
+          
+          if (left + tooltipElem.offsetWidth > window.innerWidth) left = e.pageX - tooltipElem.offsetWidth - offset;
+          
+          tooltipElem.style.left = `${left}px`;
+          tooltipElem.style.top = `${top}px`;
+      }
+
+      function copiarUrl(url) {
+          navigator.clipboard.writeText(url).then(() => {
+              mostrarToast('URL copiada');
+          }).catch(err => {
+              console.error('Error al copiar', err);
+          });
+      }
+
+      function mostrarToast(texto) {
+          const toast = document.getElementById('toast');
+          toast.querySelector('span').textContent = texto;
+          toast.classList.add('show');
+          setTimeout(() => toast.classList.remove('show'), 3000);
       }
 
       // ==================== HELPERS ====================
