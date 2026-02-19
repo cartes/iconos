@@ -568,6 +568,15 @@
             if (resCarpetas.success) carpetasCache = resCarpetas.carpetas;
             if (resIconos.success) iconosCache = resIconos.iconos;
 
+            // Actualizar permiso dinámicamente si el servidor lo informa
+            if (resIconos.success && resIconos.puedeEliminar !== undefined) {
+                puedeEliminar = resIconos.puedeEliminar;
+                sessionStorage.setItem('puedeEliminar', puedeEliminar ? 'true' : 'false');
+            } else if (resCarpetas.success && resCarpetas.puedeEliminar !== undefined) {
+                puedeEliminar = resCarpetas.puedeEliminar;
+                sessionStorage.setItem('puedeEliminar', puedeEliminar ? 'true' : 'false');
+            }
+
             renderSidebar();
             renderGrid();
         }
@@ -598,7 +607,7 @@
                             <button class="btn-folder-action" onclick="event.stopPropagation(); abrirModalRenombrar('${c.id}', '${c.nombre}')" title="Renombrar">
                                 <i class="fas fa-pencil-alt"></i>
                             </button>
-                            ${isEmpty ? `
+                            ${isEmpty && puedeEliminar ? `
                                 <button class="btn-folder-action delete" onclick="event.stopPropagation(); confirmarEliminarCarpeta('${c.id}')" title="Eliminar">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>

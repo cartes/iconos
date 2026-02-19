@@ -137,6 +137,7 @@ function verificarLogin(email, clave) {
     rol: user.rol,
     empresaId: user.empresaId || null, // Usamos ID ahora
     empresaNombre: user.empresaNombre || user.empresa || null, // Fallback
+    puedeEliminar: user.puedeEliminar !== false, // Por defecto true si no está definido
   };
 }
 
@@ -414,12 +415,20 @@ function listarCarpetas(usuarioEmail, clave, targetEmpresaId) {
   const carpetas = obtenerArchivo(DB_CARPETAS, []);
   const misCarpetas = carpetas.filter((c) => c.empresaId === contextEmpresaId);
 
-  return { success: true, carpetas: misCarpetas };
+  return {
+    success: true,
+    carpetas: misCarpetas,
+    puedeEliminar: login.puedeEliminar !== false,
+  };
 }
 
 function eliminarCarpeta(usuarioEmail, clave, idCarpeta) {
   const login = verificarLogin(usuarioEmail, clave);
   if (!login.success) return login;
+
+  if (login.rol !== "admin" && login.puedeEliminar === false) {
+    return { success: false, error: "No tienes permiso para eliminar" };
+  }
 
   let carpetas = obtenerArchivo(DB_CARPETAS, []);
 
@@ -527,7 +536,11 @@ function listarIconos(usuarioEmail, clave, targetEmpresaId) {
   // Filtrar por empresa
   const misIconos = iconos.filter((i) => i.empresaId === contextEmpresaId);
 
-  return { success: true, iconos: misIconos };
+  return {
+    success: true,
+    iconos: misIconos,
+    puedeEliminar: login.puedeEliminar !== false,
+  };
 }
 
 function editarIcono(usuarioEmail, clave, idIcono, nuevaEtiqueta) {
@@ -558,6 +571,10 @@ function editarIcono(usuarioEmail, clave, idIcono, nuevaEtiqueta) {
 function eliminarIcono(usuarioEmail, clave, idIcono) {
   const login = verificarLogin(usuarioEmail, clave);
   if (!login.success) return login;
+
+  if (login.rol !== "admin" && login.puedeEliminar === false) {
+    return { success: false, error: "No tienes permiso para eliminar" };
+  }
 
   let iconos = obtenerArchivo(DB_ICONOS, []);
 
