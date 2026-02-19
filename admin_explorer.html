@@ -326,6 +326,51 @@
         .custom-tooltip.visible {
             opacity: 1;
         }
+
+        /* SWITCH */
+        .switch-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.85);
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255,255,255,0.25);
+            transition: .3s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #e74c3c;
+        }
+        input:checked + .slider:before {
+            transform: translateX(18px);
+        }
     </style>
 </head>
 <body>
@@ -360,9 +405,18 @@
         <div class="content-area">
             <div class="content-header">
                 <h2 id="tituloSeccion">Todos los Iconos</h2>
-                <button class="btn-primary" onclick="abrirModalIcono()">
-                    <i class="fas fa-plus-circle"></i> Agregar Icono
-                </button>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div class="switch-wrapper">
+                        <label class="switch" title="Habilitar eliminación de iconos">
+                            <input type="checkbox" id="switchEliminar" onchange="toggleEliminar(this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="labelEliminar" style="color: #555; font-size: 13px;">Eliminar desactivado</span>
+                    </div>
+                    <button class="btn-primary" onclick="abrirModalIcono()">
+                        <i class="fas fa-plus-circle"></i> Agregar Icono
+                    </button>
+                </div>
             </div>
             
             <div id="iconGrid" class="icon-grid">
@@ -480,7 +534,8 @@
         let claveActual = null;
         let iconosCache = [];
         let carpetasCache = [];
-        let carpetaActiva = 'all'; 
+        let carpetaActiva = 'all';
+        let eliminacionActiva = false;
 
         // Params Admin
         const urlParams = new URLSearchParams(window.location.search);
@@ -648,9 +703,10 @@
                         <button class="btn-icon-action" onclick="event.stopPropagation(); abrirModalEditar('${icono.id}', '${icono.etiqueta || ''}')" title="Editar">
                             <i class="fas fa-pencil-alt"></i>
                         </button>
+                        ${eliminacionActiva ? `
                         <button class="btn-icon-action" onclick="event.stopPropagation(); eliminarIcono('${icono.id}')" title="Eliminar">
                             <i class="fas fa-trash-alt"></i>
-                        </button>
+                        </button>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -659,6 +715,14 @@
         function filtrar(idCarpeta) {
             carpetaActiva = idCarpeta;
             renderSidebar();
+            renderGrid();
+        }
+
+        function toggleEliminar(activo) {
+            eliminacionActiva = activo;
+            const label = document.getElementById('labelEliminar');
+            label.textContent = activo ? '⚠️ Eliminar activado' : 'Eliminar desactivado';
+            label.style.color = activo ? '#e74c3c' : '#555';
             renderGrid();
         }
 
