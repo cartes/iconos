@@ -484,6 +484,7 @@
         let iconosCache = [];
         let carpetasCache = [];
         let carpetaActiva = 'all'; // 'all' o ID de carpeta
+        let puedeEliminar = true; // Por defecto puede eliminar
 
         window.addEventListener('load', () => {
             const u = sessionStorage.getItem('usuarioActual');
@@ -494,6 +495,9 @@
             if (u && c) {
                 usuarioActual = u;
                 claveActual = c;
+
+                // Leer permiso de eliminación (true por defecto para compatibilidad)
+                puedeEliminar = sessionStorage.getItem('puedeEliminar') !== 'false';
                 
                 const empresaDisplay = empresa && empresa !== 'null' ? empresa : 'Sin Empresa';
                 document.getElementById('userInfo').innerHTML = `
@@ -642,9 +646,10 @@
                         <button class="btn-icon-action" onclick="event.stopPropagation(); abrirModalEditar('${icono.id}', '${icono.etiqueta || ''}')" title="Editar">
                             <i class="fas fa-pencil-alt"></i>
                         </button>
+                        ${puedeEliminar ? `
                         <button class="btn-icon-action" onclick="event.stopPropagation(); eliminarIcono('${icono.id}')" title="Eliminar">
                             <i class="fas fa-trash-alt"></i>
-                        </button>
+                        </button>` : ''}
                     </div>
                 </div>
             `).join('');

@@ -429,6 +429,7 @@
                     sessionStorage.setItem('nombreUsuario', resultado.nombre);
                     sessionStorage.setItem('rolUsuario', resultado.rol);
                     sessionStorage.setItem('empresaUsuario', resultado.empresaNombre || resultado.empresa);
+                    sessionStorage.setItem('puedeEliminar', resultado.puedeEliminar !== false ? 'true' : 'false');
 
                     mostrarMensajeLogin('exito', '✓ Ingreso correcto');
 

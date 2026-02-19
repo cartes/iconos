@@ -687,6 +687,7 @@
                 <th>Nombre</th>
                 <th>Rol</th>
                 <th>Empresa</th>
+                <th>Puede Eliminar</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -1039,12 +1040,20 @@
               const empresaNombre =
                 u.empresaNombre ||
                 (u.empresaId ? buscarNombreEmpresa(u.empresaId) : "-");
+              const esUsuarioRegular = u.rol !== "admin";
               return `
                     <tr>
                         <td>${u.email}</td>
                         <td>${u.nombre}</td>
                         <td><span class="badge ${u.rol === "admin" ? "badge-admin" : "badge-usuario"}">${u.rol}</span></td>
                         <td><span class="badge badge-empresa">${empresaNombre}</span></td>
+                        <td style="text-align:center;">
+                            ${esUsuarioRegular ? `
+                            <label class="switch" title="${u.puedeEliminar ? 'Puede eliminar' : 'No puede eliminar'}">
+                                <input type="checkbox" ${u.puedeEliminar ? 'checked' : ''} onchange="togglePermisoEliminar('${u.email}', this.checked)">
+                                <span class="slider round"></span>
+                            </label>` : '<span style="color:#ccc;font-size:12px;">—</span>'}
+                        </td>
                         <td>
                             <button class="btn btn-primary btn-pequeño" onclick="abrirModalEditarUsuario('${u.email}')" title="Editar" style="margin-right: 5px; display: inline-flex;">
                                 <i class="fas fa-pencil-alt"></i>
@@ -1062,6 +1071,17 @@
                 `;
             })
             .join("");
+        }
+      }
+
+      async function togglePermisoEliminar(email, puedeEliminar) {
+        const res = await api("editarUsuario", {
+          targetEmail: email,
+          datos: { puedeEliminar: puedeEliminar },
+        });
+        if (!res || !res.success) {
+          alert("Error al actualizar permiso: " + (res?.error || "Sin respuesta"));
+          cargarUsuarios(); // Recargar para revertir estado visual
         }
       }
 

@@ -282,6 +282,7 @@ function crearUsuario(
     empresaNombre: empresaNombre, // Guardamos nombre para facilitar display sin joins
     fechaCreacion: new Date().toISOString(),
     activo: true,
+    puedeEliminar: true, // Por defecto puede eliminar
   };
 
   guardarArchivo(DB_USUARIOS, usuarios);
@@ -301,6 +302,7 @@ function listarUsuarios(emailAdmin, claveAdmin) {
       rol: u.rol,
       empresaId: u.empresaId,
       empresaNombre: u.empresaNombre || u.empresa, // fallback legacy
+      puedeEliminar: u.puedeEliminar !== false, // true por defecto (usuarios sin el campo = pueden eliminar)
     };
   });
 
@@ -326,6 +328,11 @@ function editarUsuario(emailAdmin, claveAdmin, targetEmail, datos) {
     const empresas = obtenerArchivo(DB_EMPRESAS, []);
     const emp = empresas.find((e) => e.id === datos.empresaId);
     user.empresaNombre = emp ? emp.nombre : null;
+  }
+
+  // Actualizar permiso de eliminación
+  if (datos.puedeEliminar !== undefined) {
+    user.puedeEliminar = datos.puedeEliminar;
   }
 
   // Actualizar clave (opcional)
