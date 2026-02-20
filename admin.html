@@ -930,10 +930,10 @@
         const users = await api("listarUsuarios");
         const empresas = await api("listarEmpresas");
 
-        if (users && empresas) {
-          const totalUsers = users.usuarios.length;
-          const totalEmpresas = empresas.empresas.length;
-          const totalAdmins = users.usuarios.filter(
+        if (users && users.success && empresas && empresas.success) {
+          const totalUsers = (users.usuarios || []).length;
+          const totalEmpresas = (empresas.empresas || []).length;
+          const totalAdmins = (users.usuarios || []).filter(
             (u) => u.rol === "admin",
           ).length;
 
@@ -954,9 +954,10 @@
 
           // Cargar lista de empresas en dashboard
           const tbody = document.getElementById("tbodyDashboardEmpresas");
-          tbody.innerHTML = empresas.empresas
-            .map(
-              (e) => `
+          if (tbody) {
+            tbody.innerHTML = (empresas.empresas || [])
+              .map(
+                (e) => `
                     <tr>
                         <td><strong>${e.nombre}</strong></td>
                         <td>
@@ -966,8 +967,11 @@
                         </td>
                     </tr>
                  `,
-            )
-            .join("");
+              )
+              .join("");
+          }
+        } else {
+          console.error("Error al cargar dashboard:", { users, empresas });
         }
       }
 
