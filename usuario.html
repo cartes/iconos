@@ -1,605 +1,751 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mis Iconos</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #f4f6f9;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        
-        /* HEADER */
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 0 30px;
-            height: 70px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 10;
-        }
-        .header h1 { font-size: 20px; display: flex; align-items: center; gap: 10px; }
-        .user-info { display: flex; align-items: center; gap: 20px; font-size: 14px; }
-        .btn-logout {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-logout:hover { background: rgba(255,255,255,0.3); }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f4f6f9;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
 
-        /* MAIN LAYOUT */
-        .main-container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
+      /* HEADER */
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0 30px;
+        height: 70px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+      }
+      .header h1 {
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        font-size: 14px;
+      }
+      .btn-logout {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        padding: 8px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .btn-logout:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
 
-        /* SIDEBAR */
-        .sidebar {
-            width: 260px;
-            background: white;
-            border-right: 1px solid #e0e0e0;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid #f0f0f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .sidebar-header h3 { font-size: 14px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
-        .btn-add-folder {
-            background: none;
-            border: none;
-            color: #667eea;
-            cursor: pointer;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-        .btn-add-folder:hover { background: #f0f0f0; }
-        
-        .folder-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-        }
-        .folder-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between; /* Para separar texto de acciones */
-            padding: 12px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            color: #555;
-            transition: all 0.2s;
-            margin-bottom: 5px;
-        }
-        .folder-item:hover { background: #f8f9fa; color: #333; }
-        .folder-item.active {
-            background: #eef2ff;
-            color: #667eea;
-            font-weight: 600;
-        }
-        .folder-content {
-            display: flex;
-            align-items: center;
-            flex-grow: 1;
-        }
-        .folder-content i { margin-right: 10px; width: 20px; text-align: center; }
-        
-        .folder-actions {
-            display: flex;
-            gap: 5px;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        .folder-item:hover .active .folder-actions,
-        .folder-item:hover .folder-actions { opacity: 1; }
+      /* MAIN LAYOUT */
+      .main-container {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
 
-        .btn-folder-action {
-            background: none;
-            border: none;
-            color: #999;
-            cursor: pointer;
-            font-size: 12px;
-            padding: 4px;
-            border-radius: 4px;
-        }
-        .btn-folder-action:hover { color: #667eea; background: rgba(0,0,0,0.05); }
-        .btn-folder-action.delete:hover { color: #dc3545; }
+      /* SIDEBAR */
+      .sidebar {
+        width: 260px;
+        background: white;
+        border-right: 1px solid #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+      }
+      .sidebar-header {
+        padding: 20px;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .sidebar-header h3 {
+        font-size: 14px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .btn-add-folder {
+        background: none;
+        border: none;
+        color: #667eea;
+        cursor: pointer;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+      }
+      .btn-add-folder:hover {
+        background: #f0f0f0;
+      }
 
-        .sidebar-footer {
-            padding: 15px;
-            text-align: center;
-            font-size: 11px;
-            color: #ccc;
-            border-top: 1px solid #f0f0f0;
-            background: #fafafa;
-        }
+      .folder-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+      }
+      .folder-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between; /* Para separar texto de acciones */
+        padding: 12px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        color: #555;
+        transition: all 0.2s;
+        margin-bottom: 5px;
+      }
+      .folder-item:hover {
+        background: #f8f9fa;
+        color: #333;
+      }
+      .folder-item.active {
+        background: #eef2ff;
+        color: #667eea;
+        font-weight: 600;
+      }
+      .folder-content {
+        display: flex;
+        align-items: center;
+        flex-grow: 1;
+      }
+      .folder-content i {
+        margin-right: 10px;
+        width: 20px;
+        text-align: center;
+      }
 
-        /* CONTENT AREA */
-        .content-area {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-        .content-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-        .content-header h2 { font-size: 24px; color: #333; }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
-            transition: transform 0.2s;
-        }
-        .btn-primary:hover { transform: translateY(-2px); }
+      .folder-actions {
+        display: flex;
+        gap: 5px;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .folder-item:hover .active .folder-actions,
+      .folder-item:hover .folder-actions {
+        opacity: 1;
+      }
 
-        /* ICON GRID */
-        .icon-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 25px;
-            padding-bottom: 50px;
-        }
-        .icon-card {
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            transition: all 0.3s;
-            position: relative;
-            border: 1px solid transparent;
-            cursor: pointer;
-            height: 160px;
-            justify-content: center;
-        }
-        .icon-card:hover {
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-            transform: translateY(-5px);
-            border-color: #e0e0e0;
-        }
-        .icon-preview {
-            width: 100%;
-            height: 100px;
-            object-fit: contain;
-        }
-        .icon-actions {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            opacity: 0;
-            transition: opacity 0.2s;
-            display: flex;
-            gap: 5px;
-        }
-        .icon-card:hover .icon-actions { opacity: 1; }
-        .btn-icon-action {
-            background: white;
-            border: 1px solid #eee;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            color: #dc3545;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-        }
-        .btn-icon-action:hover { background: #dc3545; color: white; }
+      .btn-folder-action {
+        background: none;
+        border: none;
+        color: #999;
+        cursor: pointer;
+        font-size: 12px;
+        padding: 4px;
+        border-radius: 4px;
+      }
+      .btn-folder-action:hover {
+        color: #667eea;
+        background: rgba(0, 0, 0, 0.05);
+      }
+      .btn-folder-action.delete:hover {
+        color: #dc3545;
+      }
 
-        /* TOAST */
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #333;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 30px;
-            font-size: 14px;
-            opacity: 0;
-            transition: all 0.3s;
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+      .sidebar-footer {
+        padding: 15px;
+        text-align: center;
+        font-size: 11px;
+        color: #ccc;
+        border-top: 1px solid #f0f0f0;
+        background: #fafafa;
+      }
 
-        /* MODALS */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal.activo { display: flex; }
-        .modal-content {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            width: 90%;
-            max-width: 450px;
-        }
-        .modal-content h2 { margin-bottom: 20px; font-size: 20px; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
-        .form-group input, .form-group select {
-            width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;
-        }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
-        .btn-cancel { background: #f0f0f0; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
-        
-        .empty-state {
-            text-align: center;
-            padding: 50px;
-            color: #999;
-            grid-column: 1/-1;
-        }
-        .empty-state i { font-size: 48px; margin-bottom: 15px; opacity: 0.5; }
+      /* CONTENT AREA */
+      .content-area {
+        flex: 1;
+        padding: 30px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+      .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+      }
+      .content-header h2 {
+        font-size: 24px;
+        color: #333;
+      }
 
-        /* LOADING SPINNER */
-        .loading-state {
-            grid-column: 1/-1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 50px;
-            color: #667eea;
-        }
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(102, 126, 234, 0.1);
-            border-left-color: #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-        }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+        transition: transform 0.2s;
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+      }
 
-        /* TOOLTIP */
-        .custom-tooltip {
-            position: fixed;
-            background: rgba(0, 0, 0, 0.85);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            pointer-events: none;
-            z-index: 3000;
-            white-space: nowrap;
-            opacity: 0;
-            transition: opacity 0.2s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      /* ICON GRID */
+      .icon-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 25px;
+        padding-bottom: 50px;
+      }
+      .icon-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        transition: all 0.3s;
+        position: relative;
+        border: 1px solid transparent;
+        cursor: pointer;
+        height: 160px;
+        justify-content: center;
+      }
+      .icon-card:hover {
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        transform: translateY(-5px);
+        border-color: #e0e0e0;
+      }
+      .icon-preview {
+        width: 100%;
+        height: 100px;
+        object-fit: contain;
+      }
+      .icon-actions {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        opacity: 0;
+        transition: opacity 0.2s;
+        display: flex;
+        gap: 5px;
+      }
+      .icon-card:hover .icon-actions {
+        opacity: 1;
+      }
+      .btn-icon-action {
+        background: white;
+        border: 1px solid #eee;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        color: #dc3545;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+      }
+      .btn-icon-action:hover {
+        background: #dc3545;
+        color: white;
+      }
+
+      /* TOAST */
+      .toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: #333;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-size: 14px;
+        opacity: 0;
+        transition: all 0.3s;
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+
+      /* MODALS */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal.activo {
+        display: flex;
+      }
+      .modal-content {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        width: 90%;
+        max-width: 450px;
+      }
+      .modal-content h2 {
+        margin-bottom: 20px;
+        font-size: 20px;
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+      }
+      .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 25px;
+      }
+      .btn-cancel {
+        background: #f0f0f0;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 50px;
+        color: #999;
+        grid-column: 1/-1;
+      }
+      .empty-state i {
+        font-size: 48px;
+        margin-bottom: 15px;
+        opacity: 0.5;
+      }
+
+      /* LOADING SPINNER */
+      .loading-state {
+        grid-column: 1/-1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 50px;
+        color: #667eea;
+      }
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(102, 126, 234, 0.1);
+        border-left-color: #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 15px;
+      }
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
         }
-        .custom-tooltip.visible {
-            opacity: 1;
+        to {
+          transform: rotate(360deg);
         }
+      }
+
+      /* TOOLTIP */
+      .custom-tooltip {
+        position: fixed;
+        background: rgba(0, 0, 0, 0.85);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        pointer-events: none;
+        z-index: 3000;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.2s;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .custom-tooltip.visible {
+        opacity: 1;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="header">
-        <h1><i class="fas fa-layer-group"></i> Portal de Iconos</h1>
-        <div class="user-info">
-            <span id="userInfo">Cargando...</span>
-            <button class="btn-logout" onclick="abrirModalClave()" style="margin-right: 5px;">
-                <i class="fas fa-key"></i>
-            </button>
-            <button class="btn-logout" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i>
-            </button>
-        </div>
+      <h1><i class="fas fa-layer-group"></i> Portal de Iconos</h1>
+      <div class="user-info">
+        <span id="userInfo">Cargando...</span>
+        <button
+          class="btn-logout"
+          onclick="abrirModalClave()"
+          style="margin-right: 5px"
+        >
+          <i class="fas fa-key"></i>
+        </button>
+        <button class="btn-logout" onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
     </div>
 
     <div class="main-container">
-        <!-- SIDEBAR -->
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <h3>Carpetas</h3>
-                <button class="btn-add-folder" onclick="abrirModalCarpeta()" title="Nueva Carpeta">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
-            <div class="folder-list" id="folderList">
-                <!-- Dinámico -->
-            </div>
-            <div class="sidebar-footer">
-                Desarrollado por Cartes
-            </div>
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <h3>Carpetas</h3>
+          <button
+            class="btn-add-folder"
+            onclick="abrirModalCarpeta()"
+            title="Nueva Carpeta"
+          >
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+        <div class="folder-list" id="folderList">
+          <!-- Dinámico -->
+        </div>
+        <div class="sidebar-footer">Desarrollado por Cartes</div>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="content-area">
+        <div class="content-header">
+          <h2 id="tituloSeccion">Todos los Iconos</h2>
+          <button class="btn-primary" onclick="abrirModalIcono()">
+            <i class="fas fa-plus-circle"></i> Agregar Icono
+          </button>
         </div>
 
-        <!-- CONTENT -->
-        <div class="content-area">
-            <div class="content-header">
-                <h2 id="tituloSeccion">Todos los Iconos</h2>
-                <button class="btn-primary" onclick="abrirModalIcono()">
-                    <i class="fas fa-plus-circle"></i> Agregar Icono
-                </button>
-            </div>
-            
-            <div id="iconGrid" class="icon-grid">
-                <!-- Iconos aquí -->
-            </div>
+        <div id="iconGrid" class="icon-grid">
+          <!-- Iconos aquí -->
         </div>
+      </div>
     </div>
 
     <!-- MODAL NUEVA CARPETA -->
     <div id="modalCarpeta" class="modal">
-        <div class="modal-content">
-            <h2>Nueva Carpeta</h2>
-            <div class="form-group">
-                <label>Nombre de la carpeta:</label>
-                <input type="text" id="nombreCarpeta" placeholder="Ej: Redes Sociales">
-            </div>
-            <div class="modal-footer">
-                <button class="btn-cancel" onclick="cerrarModales()">Cancelar</button>
-                <button class="btn-primary" onclick="crearCarpeta()">Crear</button>
-            </div>
+      <div class="modal-content">
+        <h2>Nueva Carpeta</h2>
+        <div class="form-group">
+          <label>Nombre de la carpeta:</label>
+          <input
+            type="text"
+            id="nombreCarpeta"
+            placeholder="Ej: Redes Sociales"
+          />
         </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="cerrarModales()">Cancelar</button>
+          <button class="btn-primary" onclick="crearCarpeta()">Crear</button>
+        </div>
+      </div>
     </div>
 
     <!-- MODAL AGREGAR ICONO -->
     <div id="modalIcono" class="modal">
-        <div class="modal-content">
-            <h2>Agregar Icono (URL)</h2>
-            <div class="form-group">
-                <label>URL de la Imagen:</label>
-                <input type="url" id="urlIcono" placeholder="https://ejemplo.com/icono.png">
-            </div>
-            <div class="form-group">
-                <label>Etiqueta (Opcional):</label>
-                <input type="text" id="etiquetaIcono" placeholder="Ej: Logo Facebook">
-            </div>
-            <div class="form-group">
-                <label>Carpeta:</label>
-                <select id="selectCarpetaIcono">
-                    <option value="">-- Sin Carpeta (General) --</option>
-                    <!-- Dinámico -->
-                </select>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-cancel" onclick="cerrarModales()">Cancelar</button>
-                <button class="btn-primary" onclick="subirIcono()">Guardar</button>
-            </div>
+      <div class="modal-content">
+        <h2>Agregar Icono (URL)</h2>
+        <div class="form-group">
+          <label>URL de la Imagen:</label>
+          <input
+            type="url"
+            id="urlIcono"
+            placeholder="https://ejemplo.com/icono.png"
+          />
         </div>
+        <div class="form-group">
+          <label>Etiqueta (Opcional):</label>
+          <input
+            type="text"
+            id="etiquetaIcono"
+            placeholder="Ej: Logo Facebook"
+          />
+        </div>
+        <div class="form-group">
+          <label>Carpeta:</label>
+          <select id="selectCarpetaIcono">
+            <option value="">-- Sin Carpeta (General) --</option>
+            <!-- Dinámico -->
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="cerrarModales()">Cancelar</button>
+          <button class="btn-primary" onclick="subirIcono()">Guardar</button>
+        </div>
+      </div>
     </div>
 
     <!-- MODAL EDITAR ICONO -->
     <div id="modalEditarIcono" class="modal">
-        <div class="modal-content">
-            <h2>Editar Etiqueta</h2>
-            <div class="form-group">
-                <label>Nueva Etiqueta:</label>
-                <input type="text" id="editarEtiquetaInput" placeholder="Ej: Logo Facebook">
-            </div>
-            <div class="modal-footer">
-                <button class="btn-cancel" onclick="cerrarModales()">Cancelar</button>
-                <button class="btn-primary" onclick="guardarEdicion()">Guardar</button>
-            </div>
+      <div class="modal-content">
+        <h2>Editar Etiqueta</h2>
+        <div class="form-group">
+          <label>Nueva Etiqueta:</label>
+          <input
+            type="text"
+            id="editarEtiquetaInput"
+            placeholder="Ej: Logo Facebook"
+          />
         </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="cerrarModales()">Cancelar</button>
+          <button class="btn-primary" onclick="guardarEdicion()">
+            Guardar
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- MODAL CAMBIAR CLAVE -->
     <div id="modalClave" class="modal">
-        <div class="modal-content">
-            <h2>Cambiar Contraseña</h2>
-            <div class="form-group">
-                <label>Contraseña Actual:</label>
-                <input type="password" id="claveActualInput" placeholder="Tu contraseña actual">
-            </div>
-            <div class="form-group">
-                <label>Nueva Contraseña:</label>
-                <input type="password" id="claveNuevaInput" placeholder="Mínimo 8 caracteres" minlength="8">
-            </div>
-            <div class="form-group">
-                <label>Confirmar Nueva Contraseña:</label>
-                <input type="password" id="claveNuevaConfirmInput" placeholder="Repite la nueva contraseña">
-            </div>
-            <div class="modal-footer">
-                <button class="btn-cancel" onclick="cerrarModales()">Cancelar</button>
-                <button class="btn-primary" onclick="cambiarClave()">Cambiar</button>
-            </div>
+      <div class="modal-content">
+        <h2>Cambiar Contraseña</h2>
+        <div class="form-group">
+          <label>Contraseña Actual:</label>
+          <input
+            type="password"
+            id="claveActualInput"
+            placeholder="Tu contraseña actual"
+          />
         </div>
+        <div class="form-group">
+          <label>Nueva Contraseña:</label>
+          <input
+            type="password"
+            id="claveNuevaInput"
+            placeholder="Mínimo 8 caracteres"
+            minlength="8"
+          />
+        </div>
+        <div class="form-group">
+          <label>Confirmar Nueva Contraseña:</label>
+          <input
+            type="password"
+            id="claveNuevaConfirmInput"
+            placeholder="Repite la nueva contraseña"
+          />
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="cerrarModales()">Cancelar</button>
+          <button class="btn-primary" onclick="cambiarClave()">Cambiar</button>
+        </div>
+      </div>
     </div>
 
     <!-- MODAL RENOMBRAR CARPETA -->
     <div id="modalRenombrarCarpeta" class="modal">
-        <div class="modal-content">
-            <h2>Renombrar Carpeta</h2>
-            <div class="form-group">
-                <label>Nuevo Nombre:</label>
-                <input type="text" id="nuevoNombreCarpeta">
-            </div>
-            <div class="modal-footer">
-                <button class="btn-cancel" onclick="cerrarModales()">Cancelar</button>
-                <button class="btn-primary" onclick="guardarRenombre()">Guardar</button>
-            </div>
+      <div class="modal-content">
+        <h2>Renombrar Carpeta</h2>
+        <div class="form-group">
+          <label>Nuevo Nombre:</label>
+          <input type="text" id="nuevoNombreCarpeta" />
         </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="cerrarModales()">Cancelar</button>
+          <button class="btn-primary" onclick="guardarRenombre()">
+            Guardar
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- TOAST -->
     <div id="toast" class="toast">
-        <i class="fas fa-check-circle" style="color: #2ecc71;"></i>
-        <span>URL copiada al portapapeles</span>
+      <i class="fas fa-check-circle" style="color: #2ecc71"></i>
+      <span>URL copiada al portapapeles</span>
     </div>
 
     <script>
-        // ⚠️ REEMPLAZA CON TU URL
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzvu0iQg3mQqjQ3cFs_CwNhr9qDufn7LEpKViAt2z6-XDbD191ybEXyXtJnqDf7MdQH/exec';
-        
-        // Estado
-        let usuarioActual = null;
-        let claveActual = null;
-        let iconosCache = [];
-        let carpetasCache = [];
-        let carpetaActiva = 'all'; // 'all' o ID de carpeta
-        let puedeEliminar = true; // Por defecto puede eliminar
+      // ⚠️ REEMPLAZA CON TU URL SI CAMBIA
+      //const APPS_SCRIPT_URL =
+      //  "https://script.google.com/macros/s/AKfycbzvu0iQg3mQqjQ3cFs_CwNhr9qDufn7LEpKViAt2z6-XDbD191ybEXyXtJnqDf7MdQH/exec";
+      const APPS_SCRIPT_URL =
+        "https://apiiconos-production.up.railway.app/api/legacy";
 
-        window.addEventListener('load', () => {
-            const u = sessionStorage.getItem('usuarioActual');
-            const c = sessionStorage.getItem('claveActual');
-            const nombre = sessionStorage.getItem('nombreUsuario');
-            const empresa = sessionStorage.getItem('empresaUsuario');
+      // Estado
+      let usuarioActual = null;
+      let claveActual = null;
+      let iconosCache = [];
+      let carpetasCache = [];
+      let carpetaActiva = "all"; // 'all' o ID de carpeta
+      let puedeEliminar = true; // Por defecto puede eliminar
 
-            if (u && c) {
-                usuarioActual = u;
-                claveActual = c;
+      window.addEventListener("load", () => {
+        const u = sessionStorage.getItem("usuarioActual");
+        const c = sessionStorage.getItem("claveActual");
+        const nombre = sessionStorage.getItem("nombreUsuario");
+        const empresa = sessionStorage.getItem("empresaUsuario");
 
-                // Leer permiso de eliminación (true por defecto para compatibilidad)
-                puedeEliminar = sessionStorage.getItem('puedeEliminar') !== 'false';
-                
-                const empresaDisplay = empresa && empresa !== 'null' ? empresa : 'Sin Empresa';
-                document.getElementById('userInfo').innerHTML = `
+        if (u && c) {
+          usuarioActual = u;
+          claveActual = c;
+
+          // Leer permiso de eliminación (true por defecto para compatibilidad)
+          puedeEliminar = sessionStorage.getItem("puedeEliminar") !== "false";
+
+          const empresaDisplay =
+            empresa && empresa !== "null" ? empresa : "Sin Empresa";
+          document.getElementById("userInfo").innerHTML = `
                     <div style="text-align: right;">
                         <div style="font-weight: 600;">${nombre}</div>
                         <div style="font-size: 11px; opacity: 0.8;">${empresaDisplay}</div>
                     </div>
                 `;
-                
-                cargarDatos();
-            } else {
-                window.location.href = 'index.html';
-            }
+
+          cargarDatos();
+        } else {
+          window.location.href = "index.html";
+        }
+      });
+
+      // ==================== CAMBIAR CLAVE ====================
+      function abrirModalClave() {
+        document.getElementById("modalClave").classList.add("activo");
+      }
+
+      async function cambiarClave() {
+        const actual = document.getElementById("claveActualInput").value;
+        const nueva = document.getElementById("claveNuevaInput").value;
+        const confirm = document.getElementById("claveNuevaConfirmInput").value;
+
+        if (!actual || !nueva || !confirm)
+          return alert("Completa todos los campos");
+        if (nueva !== confirm)
+          return alert("las contraseñas nuevas no coinciden");
+        if (nueva.length < 8)
+          return alert("La contraseña debe tener al menos 8 caracteres");
+
+        const boton = document.querySelector("#modalClave .btn-primary");
+        const textoOriginal = boton.textContent;
+        boton.textContent = "Cambiando...";
+        boton.disabled = true;
+
+        const res = await api("cambiarClave", {
+          clave: actual, // Enviamos la clave que ingresó el usuario para validar, no la de sesion
+          nuevaClave: nueva,
         });
 
-        // ==================== CAMBIAR CLAVE ====================
-        function abrirModalClave() {
-            document.getElementById('modalClave').classList.add('activo');
+        if (res.success) {
+          mostrarToast("Contraseña actualizada");
+          sessionStorage.setItem("claveActual", nueva); // Actualizar sesion local
+          claveActual = nueva;
+          cerrarModales();
+        } else {
+          alert(res.error);
         }
 
-        async function cambiarClave() {
-            const actual = document.getElementById('claveActualInput').value;
-            const nueva = document.getElementById('claveNuevaInput').value;
-            const confirm = document.getElementById('claveNuevaConfirmInput').value;
+        boton.textContent = textoOriginal;
+        boton.disabled = false;
+      }
 
-            if (!actual || !nueva || !confirm) return alert('Completa todos los campos');
-            if (nueva !== confirm) return alert('las contraseñas nuevas no coinciden');
-            if (nueva.length < 8) return alert('La contraseña debe tener al menos 8 caracteres');
-
-            const boton = document.querySelector('#modalClave .btn-primary');
-            const textoOriginal = boton.textContent;
-            boton.textContent = 'Cambiando...';
-            boton.disabled = true;
-
-            const res = await api('cambiarClave', { 
-                clave: actual, // Enviamos la clave que ingresó el usuario para validar, no la de sesion
-                nuevaClave: nueva 
-            });
-
-            if (res.success) {
-                mostrarToast('Contraseña actualizada');
-                sessionStorage.setItem('claveActual', nueva); // Actualizar sesion local
-                claveActual = nueva;
-                cerrarModales();
-            } else {
-                alert(res.error);
-            }
-
-            boton.textContent = textoOriginal;
-            boton.disabled = false;
-        }
-
-        async function cargarDatos() {
-            // Mostrar loading
-            document.getElementById('iconGrid').innerHTML = `
+      async function cargarDatos() {
+        // Mostrar loading
+        document.getElementById("iconGrid").innerHTML = `
                 <div class="loading-state">
                     <div class="spinner"></div>
                     <p>Cargando iconos...</p>
                 </div>
             `;
 
-            // Cargar carpetas e iconos en paralelo
-            const [resCarpetas, resIconos] = await Promise.all([
-                api('listarCarpetas'),
-                api('listarIconos')
-            ]);
+        // Cargar carpetas e iconos en paralelo
+        const [resCarpetas, resIconos] = await Promise.all([
+          api("listarCarpetas"),
+          api("listarIconos"),
+        ]);
 
-            if (resCarpetas.success) carpetasCache = resCarpetas.carpetas;
-            if (resIconos.success) iconosCache = resIconos.iconos;
+        if (resCarpetas.success) carpetasCache = resCarpetas.carpetas;
+        if (resIconos.success) iconosCache = resIconos.iconos;
 
-            // Actualizar permiso dinámicamente si el servidor lo informa
-            if (resIconos.success && resIconos.puedeEliminar !== undefined) {
-                puedeEliminar = resIconos.puedeEliminar;
-                sessionStorage.setItem('puedeEliminar', puedeEliminar ? 'true' : 'false');
-            } else if (resCarpetas.success && resCarpetas.puedeEliminar !== undefined) {
-                puedeEliminar = resCarpetas.puedeEliminar;
-                sessionStorage.setItem('puedeEliminar', puedeEliminar ? 'true' : 'false');
-            }
-
-            renderSidebar();
-            renderGrid();
+        // Actualizar permiso dinámicamente si el servidor lo informa
+        if (resIconos.success && resIconos.puedeEliminar !== undefined) {
+          puedeEliminar = resIconos.puedeEliminar;
+          sessionStorage.setItem(
+            "puedeEliminar",
+            puedeEliminar ? "true" : "false",
+          );
+        } else if (
+          resCarpetas.success &&
+          resCarpetas.puedeEliminar !== undefined
+        ) {
+          puedeEliminar = resCarpetas.puedeEliminar;
+          sessionStorage.setItem(
+            "puedeEliminar",
+            puedeEliminar ? "true" : "false",
+          );
         }
 
-        // ==================== RENDERING ====================
+        renderSidebar();
+        renderGrid();
+      }
 
-        function renderSidebar() {
-            const lista = document.getElementById('folderList');
-            let html = `
-                <div class="folder-item ${carpetaActiva === 'all' ? 'active' : ''}" onclick="filtrar('all')">
+      // ==================== RENDERING ====================
+
+      function renderSidebar() {
+        const lista = document.getElementById("folderList");
+        let html = `
+                <div class="folder-item ${carpetaActiva === "all" ? "active" : ""}" onclick="filtrar('all')">
                     <div class="folder-content">
                         <i class="fas fa-th-large"></i> Todos los Iconos
                     </div>
                 </div>
             `;
-            
-            carpetasCache.forEach(c => {
-                // Contar iconos
-                const conteo = iconosCache.filter(i => i.carpetaId === c.id).length;
-                const isEmpty = conteo === 0;
 
-                html += `
-                    <div class="folder-item ${carpetaActiva === c.id ? 'active' : ''}" onclick="filtrar('${c.id}')">
+        carpetasCache.forEach((c) => {
+          // Contar iconos
+          const conteo = iconosCache.filter((i) => i.carpetaId === c.id).length;
+          const isEmpty = conteo === 0;
+
+          html += `
+                    <div class="folder-item ${carpetaActiva === c.id ? "active" : ""}" onclick="filtrar('${c.id}')">
                         <div class="folder-content">
                             <i class="fas fa-folder"></i> ${c.nombre} <span style="font-size: 11px; opacity: 0.5; margin-left: 5px;">(${conteo})</span>
                         </div>
@@ -607,360 +753,390 @@
                             <button class="btn-folder-action" onclick="event.stopPropagation(); abrirModalRenombrar('${c.id}', '${c.nombre}')" title="Renombrar">
                                 <i class="fas fa-pencil-alt"></i>
                             </button>
-                            ${isEmpty && puedeEliminar ? `
+                            ${
+                              isEmpty && puedeEliminar
+                                ? `
                                 <button class="btn-folder-action delete" onclick="event.stopPropagation(); confirmarEliminarCarpeta('${c.id}')" title="Eliminar">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
-                            ` : ''}
+                            `
+                                : ""
+                            }
                         </div>
                     </div>
                 `;
-            });
-            
-            lista.innerHTML = html;
+        });
+
+        lista.innerHTML = html;
+      }
+
+      function renderGrid() {
+        const grid = document.getElementById("iconGrid");
+        const titulo = document.getElementById("tituloSeccion");
+
+        // Filtrar
+        let filtrados = iconosCache;
+        if (carpetaActiva !== "all") {
+          filtrados = iconosCache.filter((i) => i.carpetaId === carpetaActiva);
+          const carpetaObj = carpetasCache.find((c) => c.id === carpetaActiva);
+          titulo.textContent = carpetaObj ? carpetaObj.nombre : "Carpeta";
+        } else {
+          titulo.textContent = "Todos los Iconos";
         }
 
-        function renderGrid() {
-            const grid = document.getElementById('iconGrid');
-            const titulo = document.getElementById('tituloSeccion');
-            
-            // Filtrar
-            let filtrados = iconosCache;
-            if (carpetaActiva !== 'all') {
-                filtrados = iconosCache.filter(i => i.carpetaId === carpetaActiva);
-                const carpetaObj = carpetasCache.find(c => c.id === carpetaActiva);
-                titulo.textContent = carpetaObj ? carpetaObj.nombre : 'Carpeta';
-            } else {
-                titulo.textContent = 'Todos los Iconos';
-            }
-
-            if (filtrados.length === 0) {
-                grid.innerHTML = `
+        if (filtrados.length === 0) {
+          grid.innerHTML = `
                     <div class="empty-state" style="grid-column: 1/-1;">
                         <i class="far fa-images"></i>
                         <p>No hay iconos en esta carpeta</p>
                     </div>
                 `;
-                return;
-            }
+          return;
+        }
 
-            grid.innerHTML = filtrados.map(icono => `
+        grid.innerHTML = filtrados
+          .map(
+            (icono) => `
                 <div class="icon-card" onclick="copiarUrl('${icono.url}')" 
-                     data-label="${icono.etiqueta || ''}"
+                     data-label="${icono.etiqueta || ""}"
                      onmouseenter="showTooltip(event, this)" 
                      onmouseleave="hideTooltip()"
                      onmousemove="updateTooltipPosition(event)">
                     <img src="${icono.url}" class="icon-preview" onerror="this.src='https://via.placeholder.com/64?text=Error'">
                     <div class="icon-actions">
-                        <button class="btn-icon-action" onclick="event.stopPropagation(); abrirModalEditar('${icono.id}', '${icono.etiqueta || ''}')" title="Editar">
+                        <button class="btn-icon-action" onclick="event.stopPropagation(); abrirModalEditar('${icono.id}', '${icono.etiqueta || ""}')" title="Editar">
                             <i class="fas fa-pencil-alt"></i>
                         </button>
-                        ${puedeEliminar ? `
+                        ${
+                          puedeEliminar
+                            ? `
                         <button class="btn-icon-action" onclick="event.stopPropagation(); eliminarIcono('${icono.id}')" title="Eliminar">
                             <i class="fas fa-trash-alt"></i>
-                        </button>` : ''}
+                        </button>`
+                            : ""
+                        }
                     </div>
                 </div>
-            `).join('');
+            `,
+          )
+          .join("");
+      }
+
+      function filtrar(idCarpeta) {
+        carpetaActiva = idCarpeta;
+        renderSidebar();
+        renderGrid();
+      }
+
+      // ==================== ACCIONES ====================
+
+      async function crearCarpeta() {
+        const nombre = document.getElementById("nombreCarpeta").value;
+        if (!nombre) return;
+
+        const boton = document.querySelector("#modalCarpeta .btn-primary");
+        const textoOriginal = boton.textContent;
+        boton.textContent = "Creando...";
+        boton.disabled = true;
+
+        const res = await api("crearCarpeta", { nombreCarpeta: nombre });
+
+        if (res.success) {
+          carpetasCache.push(res.carpeta);
+          renderSidebar();
+          cerrarModales();
+          carpetaActiva = res.carpeta.id; // Ir a la nueva carpeta
+          renderSidebar();
+          renderGrid();
+        } else {
+          alert(res.error);
         }
 
-        function filtrar(idCarpeta) {
-            carpetaActiva = idCarpeta;
-            renderSidebar();
+        boton.textContent = textoOriginal;
+        boton.disabled = false;
+      }
+
+      async function subirIcono() {
+        const url = document.getElementById("urlIcono").value;
+        const etiqueta = document.getElementById("etiquetaIcono").value;
+        const carpetaId = document.getElementById("selectCarpetaIcono").value;
+
+        if (!url) return alert("Ingresa una URL");
+
+        const boton = document.querySelector("#modalIcono .btn-primary");
+        const textoOriginal = boton.textContent;
+        boton.textContent = "Guardando...";
+        boton.disabled = true;
+
+        const res = await api("subirIcono", {
+          url: url,
+          carpetaId: carpetaId || null,
+          etiqueta: etiqueta,
+        });
+
+        if (res.success) {
+          iconosCache.push(res.icono);
+          renderGrid();
+          cerrarModales();
+          mostrarToast("Icono agregado correctamente");
+        } else {
+          alert(res.error);
+        }
+
+        boton.textContent = textoOriginal;
+        boton.disabled = false;
+      }
+
+      async function eliminarIcono(id) {
+        if (!confirm("¿Eliminar este icono?")) return;
+
+        const res = await api("eliminarIcono", { idIcono: id });
+        if (res.success) {
+          iconosCache = iconosCache.filter((i) => i.id !== id);
+          renderGrid();
+          mostrarToast("Icono eliminado");
+        } else {
+          alert(res.error);
+        }
+      }
+
+      // ==================== EDITAR ====================
+      let iconoEnEdicionId = null;
+
+      function abrirModalEditar(id, etiquetaActual) {
+        hideTooltip(); // Ocultar tooltip si estaba abierto
+        iconoEnEdicionId = id;
+        document.getElementById("editarEtiquetaInput").value = etiquetaActual;
+        document.getElementById("modalEditarIcono").classList.add("activo");
+        document.getElementById("editarEtiquetaInput").focus();
+      }
+
+      async function guardarEdicion() {
+        const nuevaEtiqueta = document.getElementById(
+          "editarEtiquetaInput",
+        ).value;
+        if (!iconoEnEdicionId) return;
+
+        const boton = document.querySelector("#modalEditarIcono .btn-primary");
+        const textoOriginal = boton.textContent;
+        boton.textContent = "Guardando...";
+        boton.disabled = true;
+
+        const res = await api("editarIcono", {
+          idIcono: iconoEnEdicionId,
+          nuevaEtiqueta: nuevaEtiqueta,
+        });
+
+        if (res.success) {
+          // Actualizar cache local
+          const icono = iconosCache.find((i) => i.id === iconoEnEdicionId);
+          if (icono) icono.etiqueta = nuevaEtiqueta;
+
+          renderGrid();
+          cerrarModales();
+          mostrarToast("Etiqueta actualizada");
+        } else {
+          alert(res.error);
+        }
+
+        boton.textContent = textoOriginal;
+        boton.disabled = false;
+      }
+
+      // ==================== ABM CARPETAS ====================
+      let carpetaEnEdicionId = null;
+
+      function abrirModalRenombrar(id, nombreActual) {
+        carpetaEnEdicionId = id;
+        document.getElementById("nuevoNombreCarpeta").value = nombreActual;
+        document
+          .getElementById("modalRenombrarCarpeta")
+          .classList.add("activo");
+        document.getElementById("nuevoNombreCarpeta").focus();
+      }
+
+      async function guardarRenombre() {
+        const nuevoNombre = document.getElementById("nuevoNombreCarpeta").value;
+        if (!nuevoNombre || !carpetaEnEdicionId) return;
+
+        const boton = document.querySelector(
+          "#modalRenombrarCarpeta .btn-primary",
+        );
+        const textoOriginal = boton.textContent;
+        boton.textContent = "Guardando...";
+        boton.disabled = true;
+
+        const res = await api("renombrarCarpeta", {
+          idCarpeta: carpetaEnEdicionId,
+          nuevoNombre: nuevoNombre,
+        });
+
+        if (res.success) {
+          // Update cache
+          const c = carpetasCache.find((c) => c.id === carpetaEnEdicionId);
+          if (c) c.nombre = nuevoNombre;
+
+          renderSidebar();
+          // Si estoy en esa carpeta, actualizar titulo
+          if (carpetaActiva === carpetaEnEdicionId) {
+            document.getElementById("tituloSeccion").textContent = nuevoNombre;
+          }
+
+          cerrarModales();
+          mostrarToast("Carpeta renombrada");
+        } else {
+          alert(res.error);
+        }
+
+        boton.textContent = textoOriginal;
+        boton.disabled = false;
+      }
+
+      async function confirmarEliminarCarpeta(id) {
+        if (!confirm("¿Eliminar esta carpeta vacía?")) return;
+
+        // Optimistic deletion (or verify count again)
+        // Backend checks emptiness too.
+
+        const res = await api("eliminarCarpeta", { idCarpeta: id });
+
+        if (res.success) {
+          carpetasCache = carpetasCache.filter((c) => c.id !== id);
+          if (carpetaActiva === id) {
+            carpetaActiva = "all";
             renderGrid();
+            document.getElementById("tituloSeccion").textContent =
+              "Todos los Iconos";
+          }
+          renderSidebar();
+          mostrarToast("Carpeta eliminada");
+        } else {
+          alert(res.error);
+        }
+      }
+
+      function copiarUrl(url) {
+        navigator.clipboard.writeText(url).then(() => {
+          mostrarToast("URL copiada al portapapeles");
+        });
+      }
+
+      // ==================== HELPERS ====================
+
+      async function api(accion, data = {}) {
+        try {
+          const body = {
+            accion: accion,
+            email: usuarioActual,
+            clave: claveActual,
+            ...data,
+          };
+
+          const response = await fetch(APPS_SCRIPT_URL, {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "POST",
+            body: JSON.stringify(body),
+          });
+          return await response.json();
+        } catch (e) {
+          console.error(e);
+          // Si falla, retornar objeto vacío o error
+          return { success: false, error: "Error de conexión" };
+        }
+      }
+
+      function abrirModalCarpeta() {
+        document.getElementById("modalCarpeta").classList.add("activo");
+        document.getElementById("nombreCarpeta").focus();
+      }
+
+      function abrirModalIcono() {
+        document.getElementById("modalIcono").classList.add("activo");
+        // Llenar select
+        const select = document.getElementById("selectCarpetaIcono");
+        select.innerHTML =
+          '<option value="">-- Sin Carpeta (General) --</option>' +
+          carpetasCache
+            .map(
+              (c) =>
+                `<option value="${c.id}" ${c.id === carpetaActiva ? "selected" : ""}>${c.nombre}</option>`,
+            )
+            .join("");
+      }
+
+      function cerrarModales() {
+        document
+          .querySelectorAll(".modal")
+          .forEach((m) => m.classList.remove("activo"));
+        document.querySelectorAll("input").forEach((i) => (i.value = ""));
+      }
+
+      function mostrarToast(texto) {
+        const toast = document.getElementById("toast");
+        toast.querySelector("span").textContent = texto;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 3000);
+      }
+
+      // ==================== TOOLTIP LOGIC ====================
+      let tooltipElem = null;
+
+      function createTooltip() {
+        if (!tooltipElem) {
+          tooltipElem = document.createElement("div");
+          tooltipElem.className = "custom-tooltip";
+          document.body.appendChild(tooltipElem);
+        }
+      }
+
+      function showTooltip(e, element) {
+        const label = element.getAttribute("data-label");
+        if (!label) return;
+
+        createTooltip();
+        tooltipElem.textContent = label;
+        tooltipElem.classList.add("visible");
+        updateTooltipPosition(e);
+      }
+
+      function hideTooltip() {
+        if (tooltipElem) {
+          tooltipElem.classList.remove("visible");
+        }
+      }
+
+      function updateTooltipPosition(e) {
+        if (!tooltipElem || !tooltipElem.classList.contains("visible")) return;
+
+        const offset = 15; // distancia del cursor
+        let left = e.pageX + offset;
+        let top = e.pageY + offset;
+
+        // Detección de bordes
+        const tooltipRect = tooltipElem.getBoundingClientRect();
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+
+        // Si se sale por la derecha
+        if (left + tooltipRect.width > windowWidth) {
+          left = e.pageX - tooltipRect.width - offset;
         }
 
-        // ==================== ACCIONES ====================
-
-        async function crearCarpeta() {
-            const nombre = document.getElementById('nombreCarpeta').value;
-            if (!nombre) return;
-
-            const boton = document.querySelector('#modalCarpeta .btn-primary');
-            const textoOriginal = boton.textContent;
-            boton.textContent = 'Creando...';
-            boton.disabled = true;
-
-            const res = await api('crearCarpeta', { nombreCarpeta: nombre });
-            
-            if (res.success) {
-                carpetasCache.push(res.carpeta);
-                renderSidebar();
-                cerrarModales();
-                carpetaActiva = res.carpeta.id; // Ir a la nueva carpeta
-                renderSidebar();
-                renderGrid();
-            } else {
-                alert(res.error);
-            }
-            
-            boton.textContent = textoOriginal;
-            boton.disabled = false;
+        // Si se sale por abajo (opcional, aunque el pedido era principalmente borde lateral)
+        if (top + tooltipRect.height > windowHeight) {
+          top = e.pageY - tooltipRect.height - offset;
         }
 
-        async function subirIcono() {
-            const url = document.getElementById('urlIcono').value;
-            const etiqueta = document.getElementById('etiquetaIcono').value;
-            const carpetaId = document.getElementById('selectCarpetaIcono').value;
-            
-            if (!url) return alert('Ingresa una URL');
+        tooltipElem.style.left = `${left}px`;
+        tooltipElem.style.top = `${top}px`;
+      }
 
-            const boton = document.querySelector('#modalIcono .btn-primary');
-            const textoOriginal = boton.textContent;
-            boton.textContent = 'Guardando...';
-            boton.disabled = true;
-
-            const res = await api('subirIcono', { 
-                url: url, 
-                carpetaId: carpetaId || null,
-                etiqueta: etiqueta
-            });
-
-            if (res.success) {
-                iconosCache.push(res.icono);
-                renderGrid();
-                cerrarModales();
-                mostrarToast('Icono agregado correctamente');
-            } else {
-                alert(res.error);
-            }
-
-            boton.textContent = textoOriginal;
-            boton.disabled = false;
-        }
-
-        async function eliminarIcono(id) {
-            if(!confirm('¿Eliminar este icono?')) return;
-            
-            const res = await api('eliminarIcono', { idIcono: id });
-            if (res.success) {
-                iconosCache = iconosCache.filter(i => i.id !== id);
-                renderGrid();
-                mostrarToast('Icono eliminado');
-            } else {
-                alert(res.error);
-            }
-        }
-
-        // ==================== EDITAR ====================
-        let iconoEnEdicionId = null;
-
-        function abrirModalEditar(id, etiquetaActual) {
-            hideTooltip(); // Ocultar tooltip si estaba abierto
-            iconoEnEdicionId = id;
-            document.getElementById('editarEtiquetaInput').value = etiquetaActual;
-            document.getElementById('modalEditarIcono').classList.add('activo');
-            document.getElementById('editarEtiquetaInput').focus();
-        }
-
-        async function guardarEdicion() {
-            const nuevaEtiqueta = document.getElementById('editarEtiquetaInput').value;
-            if (!iconoEnEdicionId) return;
-
-            const boton = document.querySelector('#modalEditarIcono .btn-primary');
-            const textoOriginal = boton.textContent;
-            boton.textContent = 'Guardando...';
-            boton.disabled = true;
-
-            const res = await api('editarIcono', {
-                idIcono: iconoEnEdicionId,
-                nuevaEtiqueta: nuevaEtiqueta
-            });
-
-            if (res.success) {
-                // Actualizar cache local
-                const icono = iconosCache.find(i => i.id === iconoEnEdicionId);
-                if (icono) icono.etiqueta = nuevaEtiqueta;
-                
-                renderGrid();
-                cerrarModales();
-                mostrarToast('Etiqueta actualizada');
-            } else {
-                alert(res.error);
-            }
-
-            boton.textContent = textoOriginal;
-            boton.disabled = false;
-        }
-
-        // ==================== ABM CARPETAS ====================
-        let carpetaEnEdicionId = null;
-
-        function abrirModalRenombrar(id, nombreActual) {
-            carpetaEnEdicionId = id;
-            document.getElementById('nuevoNombreCarpeta').value = nombreActual;
-            document.getElementById('modalRenombrarCarpeta').classList.add('activo');
-            document.getElementById('nuevoNombreCarpeta').focus();
-        }
-
-        async function guardarRenombre() {
-            const nuevoNombre = document.getElementById('nuevoNombreCarpeta').value;
-            if (! nuevoNombre || !carpetaEnEdicionId) return;
-            
-            const boton = document.querySelector('#modalRenombrarCarpeta .btn-primary');
-            const textoOriginal = boton.textContent;
-            boton.textContent = 'Guardando...';
-            boton.disabled = true;
-
-            const res = await api('renombrarCarpeta', {
-                idCarpeta: carpetaEnEdicionId,
-                nuevoNombre: nuevoNombre
-            });
-
-            if(res.success) {
-                // Update cache
-                const c = carpetasCache.find(c => c.id === carpetaEnEdicionId);
-                if(c) c.nombre = nuevoNombre;
-                
-                renderSidebar();
-                // Si estoy en esa carpeta, actualizar titulo
-                if(carpetaActiva === carpetaEnEdicionId) {
-                    document.getElementById('tituloSeccion').textContent = nuevoNombre;
-                }
-                
-                cerrarModales();
-                mostrarToast('Carpeta renombrada');
-            } else {
-                alert(res.error);
-            }
-            
-            boton.textContent = textoOriginal;
-            boton.disabled = false;
-        }
-
-        async function confirmarEliminarCarpeta(id) {
-            if(!confirm('¿Eliminar esta carpeta vacía?')) return;
-
-            // Optimistic deletion (or verify count again)
-            // Backend checks emptiness too.
-            
-            const res = await api('eliminarCarpeta', { idCarpeta: id });
-            
-            if(res.success) {
-                carpetasCache = carpetasCache.filter(c => c.id !== id);
-                if(carpetaActiva === id) {
-                    carpetaActiva = 'all';
-                    renderGrid();
-                    document.getElementById('tituloSeccion').textContent = 'Todos los Iconos';
-                }
-                renderSidebar();
-                mostrarToast('Carpeta eliminada');
-            } else {
-                alert(res.error);
-            }
-        }
-
-        function copiarUrl(url) {
-            navigator.clipboard.writeText(url).then(() => {
-                mostrarToast('URL copiada al portapapeles');
-            });
-        }
-
-        // ==================== HELPERS ====================
-
-        async function api(accion, data = {}) {
-            try {
-                const body = {
-                    accion: accion,
-                    email: usuarioActual,
-                    clave: claveActual,
-                    ...data
-                };
-                
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(body)
-                });
-                return await response.json();
-            } catch (e) {
-                console.error(e);
-                // Si falla, retornar objeto vacío o error
-                return { success: false, error: 'Error de conexión' };
-            }
-        }
-
-        function abrirModalCarpeta() {
-            document.getElementById('modalCarpeta').classList.add('activo');
-            document.getElementById('nombreCarpeta').focus();
-        }
-
-        function abrirModalIcono() {
-            document.getElementById('modalIcono').classList.add('activo');
-            // Llenar select
-            const select = document.getElementById('selectCarpetaIcono');
-            select.innerHTML = '<option value="">-- Sin Carpeta (General) --</option>' + 
-                carpetasCache.map(c => `<option value="${c.id}" ${c.id === carpetaActiva ? 'selected' : ''}>${c.nombre}</option>`).join('');
-        }
-
-        function cerrarModales() {
-            document.querySelectorAll('.modal').forEach(m => m.classList.remove('activo'));
-            document.querySelectorAll('input').forEach(i => i.value = '');
-        }
-
-        function mostrarToast(texto) {
-            const toast = document.getElementById('toast');
-            toast.querySelector('span').textContent = texto;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
-        // ==================== TOOLTIP LOGIC ====================
-        let tooltipElem = null;
-
-        function createTooltip() {
-            if (!tooltipElem) {
-                tooltipElem = document.createElement('div');
-                tooltipElem.className = 'custom-tooltip';
-                document.body.appendChild(tooltipElem);
-            }
-        }
-
-        function showTooltip(e, element) {
-            const label = element.getAttribute('data-label');
-            if (!label) return;
-
-            createTooltip();
-            tooltipElem.textContent = label;
-            tooltipElem.classList.add('visible');
-            updateTooltipPosition(e);
-        }
-
-        function hideTooltip() {
-            if (tooltipElem) {
-                tooltipElem.classList.remove('visible');
-            }
-        }
-
-        function updateTooltipPosition(e) {
-            if (!tooltipElem || !tooltipElem.classList.contains('visible')) return;
-
-            const offset = 15; // distancia del cursor
-            let left = e.pageX + offset;
-            let top = e.pageY + offset;
-
-            // Detección de bordes
-            const tooltipRect = tooltipElem.getBoundingClientRect();
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
-
-            // Si se sale por la derecha
-            if (left + tooltipRect.width > windowWidth) {
-                left = e.pageX - tooltipRect.width - offset;
-            }
-
-            // Si se sale por abajo (opcional, aunque el pedido era principalmente borde lateral)
-            if (top + tooltipRect.height > windowHeight) {
-                top = e.pageY - tooltipRect.height - offset;
-            }
-
-            tooltipElem.style.left = `${left}px`;
-            tooltipElem.style.top = `${top}px`;
-        }
-
-        function logout() {
-            sessionStorage.clear();
-            window.location.href = 'index.html';
-        }
+      function logout() {
+        sessionStorage.clear();
+        window.location.href = "index.html";
+      }
     </script>
-</body>
+  </body>
 </html>
