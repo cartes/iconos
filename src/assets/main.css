@@ -1,0 +1,29 @@
+@import './base.css';
+
+#app {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-weight: normal;
+}
+
+/* Common utility for clickable links that should not have default browser styles */
+a.nav-link {
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+@media (min-width: 1024px) {
+
+  /* Remove the default flex/grid centering for the entire body 
+     that was causing the 'split screen' or 'narrow strip' effect */
+  body {
+    display: block;
+  }
+
+  #app {
+    display: block;
+    padding: 0;
+  }
+}
