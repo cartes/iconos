@@ -201,6 +201,7 @@
                                     <th>Rol</th>
                                     <th>Empresa</th>
                                     <th>Puede Eliminar</th>
+                                    <th style="width: 100px; text-align: center;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -233,9 +234,19 @@
                                             </svg>
                                         </span>
                                     </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-delete tooltip-action" @click="deleteUser(user)"
+                                            v-if="user.email !== authStore.user?.email" title="Eliminar usuario">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                width="16" height="16">
+                                                <path
+                                                    d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" />
+                                            </svg>
+                                        </button>
+                                    </td>
                                 </tr>
                                 <tr v-if="paginatedUsers.length === 0" class="empty-row">
-                                    <td colspan="5">No hay usuarios registrados</td>
+                                    <td colspan="6">No hay usuarios registrados</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -444,6 +455,23 @@ const toggleDeletePermission = async (user, newValue) => {
     } catch (e) {
         alert('Error de conexión');
         user.puedeEliminar = originalValue;
+    }
+};
+
+const deleteUser = async (user) => {
+    if (!confirm(`¿Estás seguro que deseas eliminar al usuario ${user.nombre}? Esta acción no se puede deshacer.`)) {
+        return;
+    }
+
+    try {
+        const res = await apiRequest(`usuarios/${user.email}`, { method: 'DELETE' });
+        if (res.success) {
+            fetchData(); // Recarga la lista de usuarios
+        } else {
+            alert(res.error || 'Error al eliminar usuario');
+        }
+    } catch (error) {
+        alert('Error de conexión al eliminar usuario');
     }
 };
 </script>
@@ -688,6 +716,18 @@ const toggleDeletePermission = async (user, newValue) => {
     background: #218838;
 }
 
+.btn-delete {
+    background-color: transparent;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+    padding: 6px 10px;
+}
+
+.btn-delete:hover {
+    background-color: #ef4444;
+    color: white;
+}
+
 /* BADGES */
 .badge {
     display: inline-block;
@@ -768,19 +808,32 @@ input:checked+.slider:before {
 }
 
 /* TABLE OVERRIDES TO MATCH LEGACY */
+.table-responsive {
+    overflow-x: auto;
+    overflow-y: auto;
+    flex-grow: 1;
+    min-height: 0;
+    max-height: calc(90vh - 250px);
+    /* Altura máxima para forzar scroll dentro del div en vez de usar la página */
+    position: relative;
+    /* Necesario para contexto de los sticky headers */
+}
+
 table {
     width: 100%;
     border-collapse: separate;
     /* Instead of collapse for better sticky support */
     border-spacing: 0;
-    margin-top: 20px;
+    margin-top: 0;
+    /* Changed margins to manage header scroll spacing */
     background: white;
     border-radius: 8px;
-    overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 table thead {
+    position: sticky;
+    top: 0;
     z-index: 10;
 }
 
@@ -792,7 +845,6 @@ table th {
     background: #f8f9fa;
     /* Move background to th for better stickiness */
     border-bottom: 2px solid #e0e0e0;
-    position: -webkit-sticky;
     position: sticky;
     top: 0;
     z-index: 10;
@@ -806,13 +858,6 @@ table td {
 
 table tr:last-child td {
     border-bottom: none;
-}
-
-.table-responsive {
-    overflow-x: auto;
-    overflow-y: auto;
-    flex-grow: 1;
-    min-height: 0;
 }
 
 .dashboard-companies {
