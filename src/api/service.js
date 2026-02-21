@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://apiiconos-production.up.railway.app/api/" // import.meta.env.VITE_API_URL || "http://localhost:8004/api";
+const API_BASE_URL = "https://apiiconos-production.up.railway.app/api"; // import.meta.env.VITE_API_URL || "http://localhost:8004/api";
 
 export const apiRequest = async (endpoint, options = {}) => {
   try {
