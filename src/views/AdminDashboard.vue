@@ -527,7 +527,7 @@ const toggleDeletePermission = async (user, newValue) => {
 
 .legacy-content {
     padding: 30px;
-    overflow-y: auto;
+    overflow-y: hidden;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -579,7 +579,10 @@ const toggleDeletePermission = async (user, newValue) => {
 }
 
 .section.activo {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
     animation: fadeIn 0.3s ease;
 }
 
@@ -751,6 +754,9 @@ table {
 
 table thead {
     background: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 table th {
@@ -773,10 +779,17 @@ table tr:last-child td {
 
 .table-responsive {
     overflow-x: auto;
+    overflow-y: auto;
+    flex-grow: 1;
+    min-height: 0;
 }
 
 .dashboard-companies {
     margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
 }
 
 .dashboard-companies h3 {
