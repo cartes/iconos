@@ -24,10 +24,30 @@
                         <span class="folder-count">{{ icons.length }}</span>
                     </button>
 
-                    <div v-for="folder in folders" :key="folder.id" class="folder-group">
+                    <div v-for="(folder, index) in folders" :key="folder.id" class="folder-group"
+                        :draggable="auth.user.puedeEliminar"
+                        @dragstart="auth.user.puedeEliminar && onFolderDragStart($event, index)"
+                        @dragover.prevent="auth.user.puedeEliminar && onFolderDragOver($event, index)"
+                        @dragenter.prevent="auth.user.puedeEliminar && onFolderDragEnter($event, index)"
+                        @drop.prevent="auth.user.puedeEliminar && onFolderDrop($event, index)" @dragend="onDragEnd"
+                        :class="{ 'dragging': dragFolderIndex === index, 'drag-over': dragOverFolderIndex === index }">
+
+                        <div v-if="auth.user.puedeEliminar" class="drag-handle tooltip-action"
+                            title="Arrastrar para ordenar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="9" cy="5" r="1.5" />
+                                <circle cx="15" cy="5" r="1.5" />
+                                <circle cx="9" cy="12" r="1.5" />
+                                <circle cx="15" cy="12" r="1.5" />
+                                <circle cx="9" cy="19" r="1.5" />
+                                <circle cx="15" cy="19" r="1.5" />
+                            </svg>
+                        </div>
+
                         <button class="folder-item" :class="{ active: selectedFolderId === folder.id }"
                             @click="selectedFolderId = folder.id">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg viewBox="0 0 24 24" fill="none" class="folder-icon" stroke="currentColor"
+                                stroke-width="2">
                                 <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                             </svg>
                             <span class="folder-name">{{ folder.nombre }}</span>
@@ -88,9 +108,27 @@
                 </div>
 
                 <div v-else class="icons-grid">
-                    <div v-for="icon in filteredIcons" :key="icon.id" class="icon-card"
+                    <div v-for="(icon, index) in filteredIcons" :key="icon.id" class="icon-card"
+                        :draggable="auth.user.puedeEliminar"
+                        @dragstart="auth.user.puedeEliminar && onIconDragStart($event, index)"
+                        @dragover.prevent="auth.user.puedeEliminar && onIconDragOver($event, index)"
+                        @dragenter.prevent="auth.user.puedeEliminar && onIconDragEnter($event, index)"
+                        @drop.prevent="auth.user.puedeEliminar && onIconDrop($event, index)" @dragend="onDragEnd"
+                        :class="{ 'dragging': dragIconIndex === index, 'drag-over': dragOverIconIndex === index }"
                         @mouseenter="showTooltip(icon, $event)" @mousemove="moveTooltip($event)"
                         @mouseleave="hideTooltip">
+
+                        <div v-if="auth.user.puedeEliminar" class="icon-drag-handle">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                                <circle cx="9" cy="5" r="1.5" />
+                                <circle cx="15" cy="5" r="1.5" />
+                                <circle cx="9" cy="12" r="1.5" />
+                                <circle cx="15" cy="12" r="1.5" />
+                                <circle cx="9" cy="19" r="1.5" />
+                                <circle cx="15" cy="19" r="1.5" />
+                            </svg>
+                        </div>
+
                         <div class="icon-preview" @click="copyUrl(icon.url)">
                             <img :src="icon.url" :alt="icon.etiqueta" loading="lazy">
                             <div class="overlay">
@@ -268,7 +306,121 @@ const fetchData = async () => {
 
 onMounted(fetchData);
 
-// Funciones de Drop eliminadas porque ahora es por URL
+onMounted(fetchData);
+
+// --- DRAG AND DROP LOGIC PARA CARPETAS ---
+const dragFolderIndex = ref(null);
+const dragOverFolderIndex = ref(null);
+
+const onFolderDragStart = (event, index) => {
+    dragFolderIndex.value = index;
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.dropEffect = 'move';
+    // Opcional: configurar una imagen semitransparente...
+};
+const onFolderDragEnter = (event, index) => {
+    dragOverFolderIndex.value = index;
+};
+const onFolderDragOver = (event, index) => {
+    // Necesario para permitir el drop
+};
+const onFolderDrop = async (event, dropIndex) => {
+    if (dragFolderIndex.value !== null && dragFolderIndex.value !== dropIndex) {
+        const movedItem = folders.value.splice(dragFolderIndex.value, 1)[0];
+        folders.value.splice(dropIndex, 0, movedItem);
+
+        // recalcular orden general
+        folders.value.forEach((folder, idx) => {
+            folder.orden = idx + 1;
+        });
+
+        // llamar al backend
+        const payload = folders.value.map(f => ({ id: f.id, orden: f.orden }));
+
+        try {
+            const res = await apiRequest('carpetas/reorder', {
+                method: 'PUT',
+                data: { carpetas: payload }
+            });
+            if (!res.success) throw new Error(res.error);
+        } catch (error) {
+            console.error('Error reordenando', error);
+            showToast('Error reordenando carpetas');
+            fetchData(); // rollback visual
+        }
+    }
+    dragFolderIndex.value = null;
+    dragOverFolderIndex.value = null;
+};
+
+// --- DRAG AND DROP LOGIC PARA ICONOS ---
+const dragIconIndex = ref(null);
+const dragOverIconIndex = ref(null);
+
+const onIconDragStart = (event, index) => {
+    dragIconIndex.value = index;
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.dropEffect = 'move';
+};
+const onIconDragEnter = (event, index) => {
+    dragOverIconIndex.value = index;
+};
+const onIconDragOver = (event, index) => {
+    // Necesario para permitir el drop
+};
+const onIconDrop = async (event, dropIndex) => {
+    if (dragIconIndex.value !== null && dragIconIndex.value !== dropIndex) {
+        // Obtenemos los iconos de la carpeta actual y en RAM los reordenamos
+        // Para esto necesitamos trabajar sobre el array principal de iconos.
+        const currentFilteredIcons = [...filteredIcons.value];
+        const draggedGlobalIcon = currentFilteredIcons[dragIconIndex.value];
+        const destGlobalIcon = currentFilteredIcons[dropIndex];
+
+        // Lo removemos del arreglo global y lo insertamos en la misma zona lógica
+        // Como sabemos qué carpeta tenemos filtrada, vamos a actualizar el arreglo global "icons.value"
+        const globalDragIndex = icons.value.findIndex(i => i.id === draggedGlobalIcon.id);
+        const globalDropIndex = icons.value.findIndex(i => i.id === destGlobalIcon.id);
+
+        const movedItem = icons.value.splice(globalDragIndex, 1)[0];
+        // Insertamos en el lugar donde estaba el destinatario.
+        icons.value.splice(globalDropIndex, 0, movedItem);
+
+        // Recalcular el orden SOLAMENTE sobre los filtrados (los que el usuario reordenó visualmente)
+        currentFilteredIcons.splice(dragIconIndex.value, 1);
+        currentFilteredIcons.splice(dropIndex, 0, movedItem);
+
+        currentFilteredIcons.forEach((icon, idx) => {
+            icon.orden = idx + 1;
+        });
+
+        const payload = currentFilteredIcons.map(i => ({ id: i.id, orden: i.orden }));
+
+        try {
+            const res = await apiRequest('iconos/reorder', {
+                method: 'PUT',
+                data: { iconos: payload }
+            });
+            if (res.success) {
+                // Update went through seamlessly
+            } else {
+                throw new Error(res.error);
+            }
+        } catch (error) {
+            console.error('Error reordenando', error);
+            showToast('Error reordenando iconos');
+            fetchData(); // Rollback visual
+        }
+    }
+    dragIconIndex.value = null;
+    dragOverIconIndex.value = null;
+};
+
+const onDragEnd = () => {
+    dragIconIndex.value = null;
+    dragOverIconIndex.value = null;
+    dragFolderIndex.value = null;
+    dragOverFolderIndex.value = null;
+};
 
 const saveFolder = async () => {
     saving.value = true;
@@ -485,9 +637,12 @@ const hideTooltip = () => {
 .folder-name {
     flex: 1;
     line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.folder-item svg {
+.folder-icon {
     width: 20px;
     height: 20px;
     color: var(--slate-400);
@@ -533,6 +688,40 @@ const hideTooltip = () => {
     display: flex;
     align-items: center;
     padding-right: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.folder-group.dragging {
+    opacity: 0.5;
+    background: var(--slate-100);
+    border-radius: var(--radius-md);
+}
+
+.folder-group.drag-over {
+    border-top: 2px solid var(--primary-500);
+    background: rgba(79, 70, 229, 0.05);
+}
+
+.drag-handle {
+    padding: 0.5rem 0.25rem 0.5rem 0.5rem;
+    cursor: grab;
+    color: var(--slate-300);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.drag-handle svg {
+    width: 16px;
+    height: 16px;
+}
+
+.drag-handle:hover {
+    color: var(--slate-500);
 }
 
 .folder-actions {
@@ -645,6 +834,50 @@ const hideTooltip = () => {
     transform: translateY(-4px);
     box-shadow: var(--shadow-md);
     border-color: var(--primary-400);
+}
+
+.icon-card.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+    box-shadow: none;
+}
+
+.icon-card.drag-over {
+    border: 2px dashed var(--primary-500);
+    opacity: 0.8;
+}
+
+.icon-drag-handle {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 10;
+    color: var(--slate-400);
+    background: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    box-shadow: var(--shadow-sm);
+    opacity: 0;
+    transition: all 0.2s;
+}
+
+:global(.dark) .icon-drag-handle {
+    background: var(--slate-800);
+    color: var(--slate-300);
+}
+
+.icon-card:hover .icon-drag-handle {
+    opacity: 1;
+}
+
+.icon-drag-handle:active {
+    cursor: grabbing;
+    transform: scale(0.9);
 }
 
 .icon-preview {

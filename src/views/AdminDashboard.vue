@@ -210,7 +210,8 @@
                                     <td class="name">{{ user.nombre }}</td>
                                     <td>
                                         <span :class="['badge', 'badge-' + user.rol]">
-                                            {{ user.rol === 'admin' ? 'admin' : 'usuario' }}
+                                            {{ user.rol === 'admin' ? 'admin' : (user.rol === 'editor' ? 'editor' :
+                                            'usuario') }}
                                         </span>
                                     </td>
                                     <td class="empresa-cell">
@@ -284,11 +285,12 @@
                     <label class="label">Rol</label>
                     <select v-model="newUser.rol" class="select-input">
                         <option value="usuario">Usuario Estándar</option>
+                        <option value="editor">Editor</option>
                         <option value="admin">Administrador</option>
                     </select>
                 </div>
 
-                <div class="form-group" v-if="newUser.rol === 'usuario'">
+                <div class="form-group" v-if="newUser.rol === 'usuario' || newUser.rol === 'editor'">
                     <label class="label">Empresa</label>
                     <select v-model="newUser.empresaId" class="select-input" required>
                         <option value="" disabled>Selecciona una empresa</option>
@@ -739,6 +741,11 @@ const deleteUser = async (user) => {
 
 .badge-admin {
     background: #dc3545;
+    color: white;
+}
+
+.badge-editor {
+    background: #fd7e14;
     color: white;
 }
 
