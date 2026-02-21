@@ -132,11 +132,8 @@
             </form>
         </BaseModal>
 
-        <BaseModal :show="showUpload" title="Subir Icono" @close="showUpload = false">
+        <BaseModal :show="showUpload" title="Agregar Icono" @close="showUpload = false">
             <form @submit.prevent="saveIcon" class="modal-form">
-                <BaseInput label="Nombre del Icono" v-model="iconForm.nombre" placeholder="Ej. Instagram Logo"
-                    required />
-
                 <div class="form-group">
                     <label class="label">Carpeta</label>
                     <select v-model="iconForm.carpetaId" class="select-input" required>
@@ -145,22 +142,13 @@
                     </select>
                 </div>
 
-                <div class="file-upload-area" :class="{ dragging: isDragging }" @dragover.prevent="isDragging = true"
-                    @dragleave.prevent="isDragging = false" @drop.prevent="handleDrop">
-                    <input type="file" id="iconFile" class="file-input" @change="handleFileChange" accept="image/*"
-                        required />
-                    <label for="iconFile" class="file-label">
-                        <svg v-if="!iconForm.fileName" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
-                        </svg>
-                        <span v-if="!iconForm.fileName">Suelta un archivo aquí o haz clic para subir</span>
-                        <span v-else class="file-name">✓ {{ iconForm.fileName }}</span>
-                    </label>
-                </div>
+                <BaseInput label="URL de la Imagen" v-model="iconForm.url" placeholder="https://ejemplo.com/icono.png"
+                    required />
+
+                <BaseInput label="Etiqueta" v-model="iconForm.nombre" placeholder="Ej. Instagram Logo" />
 
                 <div class="modal-actions">
-                    <BaseButton type="submit" :loading="saving">Subir Icono</BaseButton>
+                    <BaseButton type="submit" :loading="saving">Agregar Icono</BaseButton>
                 </div>
             </form>
         </BaseModal>
@@ -218,13 +206,12 @@ const selectedFolderId = ref(null);
 const loading = ref(false);
 const saving = ref(false);
 const toast = ref(null);
-const isDragging = ref(false);
 
 const showAddFolder = ref(false);
 const showUpload = ref(false);
 
 const folderForm = reactive({ nombre: '' });
-const iconForm = reactive({ nombre: '', carpetaId: '', fileBase64: '', fileName: '' });
+const iconForm = reactive({ nombre: '', carpetaId: '', url: '' });
 
 const deletionMode = ref(false);
 const showRenameModal = ref(false);
@@ -267,8 +254,8 @@ const fetchData = async () => {
     loading.value = true;
     try {
         const [fResL, iResL] = await Promise.all([
-            apiRequest('listarCarpetas', { targetEmpresaId: companyId }, auth.user),
-            apiRequest('listarIconos', { targetEmpresaId: companyId }, auth.user)
+            apiRequest(`carpetas?targetEmpresaId=${companyId}`),
+            apiRequest(`iconos?targetEmpresaId=${companyId}`)
         ]);
         if (fResL.success) folders.value = fResL.carpetas || [];
         if (iResL.success) icons.value = iResL.iconos || [];
@@ -281,29 +268,14 @@ const fetchData = async () => {
 
 onMounted(fetchData);
 
-const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) processFile(file);
-};
-
-const handleDrop = (e) => {
-    isDragging.value = false;
-    const file = e.dataTransfer.files[0];
-    if (file) processFile(file);
-};
-
-const processFile = (file) => {
-    iconForm.fileName = file.name;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        iconForm.fileBase64 = e.target.result;
-    };
-    reader.readAsDataURL(file);
-};
+// Funciones de Drop eliminadas porque ahora es por URL
 
 const saveFolder = async () => {
     saving.value = true;
-    const res = await apiRequest('crearCarpeta', { nombre: folderForm.nombre, targetEmpresaId: companyId }, auth.user);
+    const res = await apiRequest('carpetas', {
+        method: 'POST',
+        data: { nombre: folderForm.nombre, targetEmpresaId: companyId }
+    });
     if (res.success) {
         showAddFolder.value = false;
         folderForm.nombre = '';
@@ -315,25 +287,27 @@ const saveFolder = async () => {
 
 const saveIcon = async () => {
     saving.value = true;
-    const res = await apiRequest('crearIcono', {
-        nombre: iconForm.nombre,
-        carpetaId: iconForm.carpetaId,
-        archivo: iconForm.fileBase64,
-        nombreArchivo: iconForm.fileName,
-        targetEmpresaId: companyId
-    }, auth.user);
+    const res = await apiRequest('iconos', {
+        method: 'POST',
+        data: {
+            nombre: iconForm.nombre,
+            carpetaId: iconForm.carpetaId,
+            url: iconForm.url,
+            targetEmpresaId: companyId
+        }
+    });
     if (res.success) {
         showUpload.value = false;
-        Object.assign(iconForm, { nombre: '', carpetaId: '', fileBase64: '', fileName: '' });
+        Object.assign(iconForm, { nombre: '', carpetaId: '', url: '' });
         fetchData();
-        showToast('Icono subido');
+        showToast('Icono agregado');
     } else alert(res.error);
     saving.value = false;
 };
 
 const handleDeleteFolder = async (folder) => {
     if (confirm(`¿Estás seguro de eliminar la carpeta "${folder.nombre}"?`)) {
-        const res = await apiRequest('eliminarCarpeta', { idCarpeta: folder.id, targetEmpresaId: companyId }, auth.user);
+        const res = await apiRequest(`carpetas/${folder.id}`, { method: 'DELETE' });
         if (res.success) {
             if (selectedFolderId.value === folder.id) selectedFolderId.value = null;
             fetchData();
@@ -350,11 +324,10 @@ const openRenameFolderModal = (folder) => {
 
 const handleRenameFolder = async () => {
     saving.value = true;
-    const res = await apiRequest('renombrarCarpeta', {
-        idCarpeta: renameFolderForm.id,
-        nuevoNombre: renameFolderForm.nombre,
-        targetEmpresaId: companyId
-    }, auth.user);
+    const res = await apiRequest(`carpetas/${renameFolderForm.id}`, {
+        method: 'PUT',
+        data: { nombre: renameFolderForm.nombre }
+    });
 
     if (res.success) {
         showRenameFolderModal.value = false;
@@ -366,7 +339,7 @@ const handleRenameFolder = async () => {
 
 const handleDeleteIcon = async (icon) => {
     if (confirm(`¿Estás seguro de eliminar el icono "${icon.etiqueta || icon.url}"?`)) {
-        const res = await apiRequest('eliminarIcono', { iconoId: icon.id, targetEmpresaId: companyId }, auth.user);
+        const res = await apiRequest(`iconos/${icon.id}`, { method: 'DELETE' });
         if (res.success) {
             fetchData();
             showToast('Icono eliminado');
@@ -382,11 +355,10 @@ const openRenameModal = (icon) => {
 
 const handleRename = async () => {
     saving.value = true;
-    const res = await apiRequest('editarIcono', {
-        idIcono: renameForm.id,
-        nuevaEtiqueta: renameForm.nombre,
-        targetEmpresaId: companyId
-    }, auth.user);
+    const res = await apiRequest(`iconos/${renameForm.id}`, {
+        method: 'PUT',
+        data: { nuevaEtiqueta: renameForm.nombre }
+    });
 
     if (res.success) {
         showRenameModal.value = false;

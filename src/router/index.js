@@ -35,22 +35,22 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach((to, from) => {
   const auth = useAuthStore();
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
-    next("/login");
+    return "/login";
   } else if (to.path === "/login" && auth.isAuthenticated) {
     if (auth.user.rol === "admin") {
-      next("/admin");
+      return "/admin";
     } else {
-      next("/portal");
+      return "/portal";
     }
   } else if (to.meta.role && auth.user?.rol !== to.meta.role) {
-    next(auth.user?.rol === "admin" ? "/admin" : "/portal");
-  } else {
-    next();
+    return auth.user?.rol === "admin" ? "/admin" : "/portal";
   }
+
+  return true;
 });
 
 export default router;

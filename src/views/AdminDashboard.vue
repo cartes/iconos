@@ -292,6 +292,7 @@ import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiRequest } from '@/api/service';
 import BaseInput from '@/components/BaseInput.vue';
+import BaseButton from '@/components/BaseButton.vue';
 import BaseSwitch from '@/components/BaseSwitch.vue';
 import BaseModal from '@/components/BaseModal.vue';
 import { useAuthStore } from '@/stores/auth';
@@ -335,7 +336,7 @@ const updateTheme = () => {
 };
 
 const logout = () => {
-    authStore.clearSession();
+    authStore.logout();
     router.push('/login');
 };
 
@@ -343,8 +344,8 @@ const fetchData = async () => {
     loading.value = true;
     try {
         const [compRes, userRes] = await Promise.all([
-            apiRequest('listarEmpresas', {}, authStore.user),
-            apiRequest('listarUsuarios', {}, authStore.user)
+            apiRequest('empresas'),
+            apiRequest('usuarios')
         ]);
 
         if (compRes.success) companies.value = compRes.empresas || [];
@@ -369,7 +370,7 @@ onMounted(() => {
 
 const saveCompany = async () => {
     saving.value = true;
-    const res = await apiRequest('crearEmpresa', { nombre: newCompany.nombre }, authStore.user);
+    const res = await apiRequest('empresas', { method: 'POST', data: { nombre: newCompany.nombre } });
     if (res.success) {
         showAddCompanyModal.value = false;
         newCompany.nombre = '';
@@ -382,7 +383,7 @@ const saveCompany = async () => {
 
 const saveUser = async () => {
     saving.value = true;
-    const res = await apiRequest('crearUsuario', { ...newUser }, authStore.user);
+    const res = await apiRequest('usuarios', { method: 'POST', data: { ...newUser } });
     if (res.success) {
         showAddUserModal.value = false;
         Object.assign(newUser, { nombre: '', email: '', clave: '', rol: 'usuario', empresaId: '' });
@@ -405,10 +406,10 @@ const toggleDeletePermission = async (user, newValue) => {
     user.puedeEliminar = newValue; // Optimistic update
 
     try {
-        const res = await apiRequest('editarUsuario', {
-            targetEmail: user.email,
-            datos: { puedeEliminar: newValue }
-        }, authStore.user);
+        const res = await apiRequest(`usuarios/${user.email}`, {
+            method: 'PUT',
+            data: { puedeEliminar: newValue }
+        });
 
         if (!res.success) {
             alert(res.error || 'Error al actualizar permiso');

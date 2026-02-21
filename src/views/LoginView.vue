@@ -43,6 +43,7 @@
 import { ref, reactive, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { apiRequest } from '@/api/service';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
 
@@ -79,11 +80,13 @@ const handleSubmit = async () => {
 
     try {
         if (needsBootstrap.value) {
-            // Bootstrap logic (placeholder for now, calling API directly or through store)
-            const res = await authStore.apiRequest('crearPrimerAdmin', {
-                email: form.email,
-                nombre: form.nombre,
-                clave: form.clave
+            const res = await apiRequest('primer-admin', {
+                method: 'POST',
+                data: {
+                    email: form.email,
+                    nombre: form.nombre,
+                    clave: form.clave
+                }
             });
             if (res.success) {
                 needsBootstrap.value = false;

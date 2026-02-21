@@ -138,8 +138,8 @@ const fetchData = async () => {
     loading.value = true;
     try {
         const [fRes, iRes] = await Promise.all([
-            apiRequest('listarCarpetas', {}, auth.user),
-            apiRequest('listarIconos', {}, auth.user)
+            apiRequest('carpetas'),
+            apiRequest('iconos')
         ]);
         if (fRes.success) folders.value = fRes.carpetas || [];
         if (iRes.success) icons.value = iRes.iconos || [];
