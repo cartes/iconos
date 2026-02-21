@@ -204,7 +204,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="user in users" :key="user.email">
+                                <tr v-for="user in paginatedUsers" :key="user.email">
                                     <td class="email">{{ user.email }}</td>
                                     <td class="name">{{ user.nombre }}</td>
                                     <td>
@@ -234,11 +234,19 @@
                                         </span>
                                     </td>
                                 </tr>
-                                <tr v-if="users.length === 0" class="empty-row">
+                                <tr v-if="paginatedUsers.length === 0" class="empty-row">
                                     <td colspan="5">No hay usuarios registrados</td>
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+
+                    <div class="pagination-controls" v-if="totalPages > 1">
+                        <button class="btn btn-primary btn-sm" @click="prevPage"
+                            :disabled="currentPage === 1">Anterior</button>
+                        <span class="pagination-info">Página {{ currentPage }} de {{ totalPages }}</span>
+                        <button class="btn btn-primary btn-sm" @click="nextPage"
+                            :disabled="currentPage === totalPages">Siguiente</button>
                     </div>
                 </div>
             </main>
@@ -288,7 +296,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiRequest } from '@/api/service';
 import BaseInput from '@/components/BaseInput.vue';
@@ -304,6 +312,24 @@ const users = ref([]);
 const loading = ref(false);
 const saving = ref(false);
 const activeTab = ref('dashboard');
+
+const currentPage = ref(1);
+const itemsPerPage = 8; // Ajustable
+
+const paginatedUsers = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage;
+    return users.value.slice(start, start + itemsPerPage);
+});
+
+const totalPages = computed(() => Math.ceil(users.value.length / itemsPerPage));
+
+const nextPage = () => {
+    if (currentPage.value < totalPages.value) currentPage.value++;
+};
+
+const prevPage = () => {
+    if (currentPage.value > 1) currentPage.value--;
+};
 
 const showAddCompanyModal = ref(false);
 const showAddUserModal = ref(false);
@@ -753,7 +779,6 @@ table {
 }
 
 table thead {
-    background: #f8f9fa;
     position: sticky;
     top: 0;
     z-index: 10;
@@ -764,7 +789,12 @@ table th {
     text-align: left;
     font-weight: 600;
     color: #333;
+    background: #f8f9fa;
+    /* Move background to th for better stickiness */
     border-bottom: 2px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 table td {
@@ -900,6 +930,37 @@ table tr:last-child td {
     color: var(--color-text-muted);
 }
 
+/* Pagination Styles */
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    margin-top: auto;
+    border-top: 1px solid #e0e0e0;
+}
+
+:global(.dark) .pagination-controls {
+    border-top-color: var(--color-border);
+}
+
+.pagination-info {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #666;
+}
+
+:global(.dark) .pagination-info {
+    color: var(--color-text-muted);
+}
+
+.btn-sm:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 .spinner-large {
     width: 40px;
     height: 40px;
@@ -968,11 +1029,8 @@ table tr:last-child td {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
 }
 
-.dark table thead {
-    background: #393952 !important;
-}
-
 .dark table th {
+    background: #393952 !important;
     color: #ffffff !important;
     border-bottom-color: #4a4a6a !important;
 }
