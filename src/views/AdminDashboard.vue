@@ -770,7 +770,9 @@ input:checked+.slider:before {
 /* TABLE OVERRIDES TO MATCH LEGACY */
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    /* Instead of collapse for better sticky support */
+    border-spacing: 0;
     margin-top: 20px;
     background: white;
     border-radius: 8px;
@@ -779,8 +781,6 @@ table {
 }
 
 table thead {
-    position: sticky;
-    top: 0;
     z-index: 10;
 }
 
@@ -792,6 +792,7 @@ table th {
     background: #f8f9fa;
     /* Move background to th for better stickiness */
     border-bottom: 2px solid #e0e0e0;
+    position: -webkit-sticky;
     position: sticky;
     top: 0;
     z-index: 10;
