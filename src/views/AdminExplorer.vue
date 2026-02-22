@@ -46,8 +46,7 @@
 
                         <button class="folder-item" :class="{ active: selectedFolderId === folder.id }"
                             @click="selectedFolderId = folder.id">
-                            <svg viewBox="0 0 24 24" fill="none" class="folder-icon" stroke="currentColor"
-                                stroke-width="2">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                             </svg>
                             <span class="folder-name">{{ folder.nombre }}</span>
@@ -684,13 +683,6 @@ const hideTooltip = () => {
     color: var(--primary-600);
 }
 
-.folder-group {
-    display: flex;
-    align-items: center;
-    padding-right: 0.75rem;
-    transition: all 0.2s ease;
-}
-
 .folder-group.dragging {
     opacity: 0.5;
     background: var(--slate-100);
@@ -703,7 +695,7 @@ const hideTooltip = () => {
 }
 
 .drag-handle {
-    padding: 0.5rem 0.25rem 0.5rem 0.5rem;
+    padding: 0.625rem 0.25rem 0.625rem 0.5rem;
     cursor: grab;
     color: var(--slate-300);
     display: flex;
