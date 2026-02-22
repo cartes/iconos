@@ -12,7 +12,7 @@
                 <nav class="folder-list">
                     <button class="folder-item all" :class="{ active: !selectedFolderId }"
                         @click="selectedFolderId = null">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="folder-icon">
                             <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
                         </svg>
                         <span class="folder-name">Todas las carpetas</span>
@@ -41,7 +41,8 @@
 
                         <button class="folder-item" :class="{ active: selectedFolderId === folder.id }"
                             @click="selectedFolderId = folder.id">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                class="folder-icon">
                                 <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                             </svg>
                             <span class="folder-name">{{ folder.nombre }}</span>
@@ -366,12 +367,9 @@ const onDragEnd = () => {
 .folder-name {
     flex: 1;
     line-height: 1.4;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
-.folder-item svg {
+.folder-icon {
     width: 20px;
     height: 20px;
     color: var(--slate-400);
