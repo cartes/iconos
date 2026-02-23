@@ -49,6 +49,12 @@
                             <span class="folder-count">{{ iconCountByFolder[folder.id] || 0 }}</span>
                         </button>
                         <div class="folder-actions" v-if="auth.user.puedeEliminar">
+                            <button @click="openRenameFolderModal(folder)" class="edit-folder-btn" title="Renombrar">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                </svg>
+                            </button>
                             <button v-if="(iconCountByFolder[folder.id] || 0) === 0" @click="handleDeleteFolder(folder)"
                                 class="delete-folder-btn" title="Eliminar">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -124,6 +130,12 @@
                             <span class="icon-name" :title="icon.etiqueta">{{ icon.etiqueta || '-' }}</span>
                             <div class="icon-actions">
                                 <span class="ext-tag">{{ icon.extension }}</span>
+                                <button v-if="auth.user.puedeEliminar" class="edit-icon" @click="openRenameModal(icon)" title="Editar Etiqueta">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                    </svg>
+                                </button>
                                 <button v-if="auth.user.puedeEliminar" @click="handleDeleteIcon(icon)"
                                     class="delete-icon">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -137,6 +149,26 @@
                 </div>
             </main>
         </div>
+
+        <!-- Rename Icon Modal -->
+        <BaseModal :show="showRenameModal" title="Editar Etiqueta" @close="showRenameModal = false">
+            <form @submit.prevent="handleRename" class="modal-form">
+                <BaseInput label="Nueva Etiqueta" v-model="renameForm.nombre" required />
+                <div class="modal-actions">
+                    <BaseButton type="submit" :loading="saving">Actualizar</BaseButton>
+                </div>
+            </form>
+        </BaseModal>
+
+        <!-- Rename Folder Modal -->
+        <BaseModal :show="showRenameFolderModal" title="Renombrar Carpeta" @close="showRenameFolderModal = false">
+            <form @submit.prevent="handleRenameFolder" class="modal-form">
+                <BaseInput label="Nuevo Nombre" v-model="renameFolderForm.nombre" required />
+                <div class="modal-actions">
+                    <BaseButton type="submit" :loading="saving">Guardar</BaseButton>
+                </div>
+            </form>
+        </BaseModal>
 
         <!-- Tooltip -->
         <div v-if="tooltip.show" class="custom-tooltip" :style="tooltipStyle">
@@ -153,6 +185,9 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { apiRequest } from '@/api/service';
 import TopBar from '@/components/TopBar.vue';
+import BaseModal from '@/components/BaseModal.vue';
+import BaseInput from '@/components/BaseInput.vue';
+import BaseButton from '@/components/BaseButton.vue';
 
 const auth = useAuthStore();
 
@@ -160,7 +195,14 @@ const folders = ref([]);
 const icons = ref([]);
 const selectedFolderId = ref(null);
 const loading = ref(false);
+const saving = ref(false);
 const toast = ref(null);
+
+const showRenameModal = ref(false);
+const renameForm = reactive({ id: null, nombre: '' });
+
+const showRenameFolderModal = ref(false);
+const renameFolderForm = reactive({ id: null, nombre: '' });
 
 const tooltip = reactive({
     show: false,
@@ -230,6 +272,54 @@ const moveTooltip = (e) => {
 
 const hideTooltip = () => {
     tooltip.show = false;
+};
+
+const openRenameFolderModal = (folder) => {
+    renameFolderForm.id = folder.id;
+    renameFolderForm.nombre = folder.nombre;
+    showRenameFolderModal.value = true;
+};
+
+const handleRenameFolder = async () => {
+    saving.value = true;
+    const res = await apiRequest(`carpetas/${renameFolderForm.id}`, {
+        method: 'PUT',
+        data: { nombre: renameFolderForm.nombre }
+    });
+
+    if (res.success) {
+        showRenameFolderModal.value = false;
+        fetchData();
+        toast.value = 'Carpeta renombrada';
+        setTimeout(() => { toast.value = null; }, 2000);
+    } else {
+        alert(res.error || 'Error al renombrar');
+    }
+    saving.value = false;
+};
+
+const openRenameModal = (icon) => {
+    renameForm.id = icon.id;
+    renameForm.nombre = icon.etiqueta;
+    showRenameModal.value = true;
+};
+
+const handleRename = async () => {
+    saving.value = true;
+    const res = await apiRequest(`iconos/${renameForm.id}`, {
+        method: 'PUT',
+        data: { nuevaEtiqueta: renameForm.nombre }
+    });
+
+    if (res.success) {
+        showRenameModal.value = false;
+        fetchData();
+        toast.value = 'Etiqueta actualizada';
+        setTimeout(() => { toast.value = null; }, 2000);
+    } else {
+        alert(res.error || 'Error al actualizar etiqueta');
+    }
+    saving.value = false;
 };
 
 const handleDeleteFolder = async (folder) => {
@@ -621,7 +711,8 @@ const onDragEnd = () => {
     gap: 0.5rem;
 }
 
-.delete-icon {
+.delete-icon,
+.edit-icon {
     background: none;
     border: none;
     color: var(--slate-400);
@@ -637,7 +728,13 @@ const onDragEnd = () => {
     background: var(--slate-100);
 }
 
-.delete-icon svg {
+.edit-icon:hover {
+    color: var(--primary-600);
+    background: var(--slate-100);
+}
+
+.delete-icon svg,
+.edit-icon svg {
     width: 16px;
     height: 16px;
 }
@@ -771,7 +868,8 @@ const onDragEnd = () => {
     opacity: 1;
 }
 
-.delete-folder-btn {
+.delete-folder-btn,
+.edit-folder-btn {
     background: none;
     border: none;
     color: var(--slate-400);
@@ -787,7 +885,13 @@ const onDragEnd = () => {
     background: var(--slate-100);
 }
 
-.delete-folder-btn svg {
+.edit-folder-btn:hover {
+    color: var(--primary-600);
+    background: var(--slate-100);
+}
+
+.delete-folder-btn svg,
+.edit-folder-btn svg {
     width: 16px;
     height: 16px;
 }
