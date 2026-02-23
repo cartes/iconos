@@ -48,6 +48,15 @@
                             <span class="folder-name">{{ folder.nombre }}</span>
                             <span class="folder-count">{{ iconCountByFolder[folder.id] || 0 }}</span>
                         </button>
+                        <div class="folder-actions" v-if="auth.user.puedeEliminar">
+                            <button v-if="(iconCountByFolder[folder.id] || 0) === 0" @click="handleDeleteFolder(folder)"
+                                class="delete-folder-btn" title="Eliminar">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path
+                                        d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </nav>
             </aside>
@@ -113,7 +122,16 @@
                         </div>
                         <div class="icon-info">
                             <span class="icon-name" :title="icon.etiqueta">{{ icon.etiqueta || '-' }}</span>
-                            <span class="ext-tag">{{ icon.extension }}</span>
+                            <div class="icon-actions">
+                                <span class="ext-tag">{{ icon.extension }}</span>
+                                <button v-if="auth.user.puedeEliminar" @click="handleDeleteIcon(icon)"
+                                    class="delete-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path
+                                            d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -212,6 +230,33 @@ const moveTooltip = (e) => {
 
 const hideTooltip = () => {
     tooltip.show = false;
+};
+
+const handleDeleteFolder = async (folder) => {
+    if (confirm(`¿Estás seguro de eliminar la carpeta "${folder.nombre}"?`)) {
+        const res = await apiRequest(`carpetas/${folder.id}`, { method: 'DELETE' });
+        if (res.success) {
+            if (selectedFolderId.value === folder.id) selectedFolderId.value = null;
+            fetchData();
+            toast.value = 'Carpeta eliminada';
+            setTimeout(() => { toast.value = null; }, 2000);
+        } else {
+            alert(res.error || 'Error al eliminar la carpeta');
+        }
+    }
+};
+
+const handleDeleteIcon = async (icon) => {
+    if (confirm(`¿Estás seguro de eliminar el icono "${icon.etiqueta || icon.url}"?`)) {
+        const res = await apiRequest(`iconos/${icon.id}`, { method: 'DELETE' });
+        if (res.success) {
+            fetchData();
+            toast.value = 'Icono eliminado';
+            setTimeout(() => { toast.value = null; }, 2000);
+        } else {
+            alert(res.error || 'Error al eliminar el icono');
+        }
+    }
 };
 
 // --- DRAG AND DROP LOGIC PARA CARPETAS ---
@@ -570,6 +615,33 @@ const onDragEnd = () => {
     background: var(--slate-800);
 }
 
+.icon-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.delete-icon {
+    background: none;
+    border: none;
+    color: var(--slate-400);
+    padding: 0.25rem;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    transition: all 0.2s;
+}
+
+.delete-icon:hover {
+    color: var(--error-500);
+    background: var(--slate-100);
+}
+
+.delete-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
 .toast {
     position: fixed;
     bottom: 2rem;
@@ -685,6 +757,39 @@ const onDragEnd = () => {
 
 .drag-handle:hover {
     color: var(--slate-500);
+}
+
+.folder-actions {
+    display: flex;
+    gap: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.folder-group:hover .folder-actions,
+.folder-actions:focus-within {
+    opacity: 1;
+}
+
+.delete-folder-btn {
+    background: none;
+    border: none;
+    color: var(--slate-400);
+    padding: 0.5rem;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    transition: all 0.2s;
+}
+
+.delete-folder-btn:hover {
+    color: var(--error-500);
+    background: var(--slate-100);
+}
+
+.delete-folder-btn svg {
+    width: 16px;
+    height: 16px;
 }
 
 .icon-card.dragging {
