@@ -53,6 +53,7 @@
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                                     <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+
                                 </svg>
                             </button>
                             <button v-if="(iconCountByFolder[folder.id] || 0) === 0" @click="handleDeleteFolder(folder)"
@@ -130,7 +131,8 @@
                             <span class="icon-name" :title="icon.etiqueta">{{ icon.etiqueta || '-' }}</span>
                             <div class="icon-actions">
                                 <span class="ext-tag">{{ icon.extension }}</span>
-                                <button v-if="auth.user.puedeEliminar" class="edit-icon" @click="openRenameModal(icon)" title="Editar Etiqueta">
+                                <button v-if="auth.user.puedeEliminar" class="edit-icon" @click="openRenameModal(icon)"
+                                    title="Editar Etiqueta">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                                         <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
