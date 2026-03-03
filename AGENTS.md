@@ -4,6 +4,7 @@
 
 - **Frontend**: Desarrollado en Vue.js 3 (Vite + Pinia).
 - **Backend / API**: Alimentado por una API REST en Laravel 11.9 (Endpoint base: `https://apiiconos-production.up.railway.app/api`).
+- **backend**: '/Users/cristiancartes/Documents/html/iconos laravel'
 - **Diseño Original**: La interfaz y el diseño actual se basan estrictamente en el sistema heredado (HTML, CSS vanilla y JS) ubicado en la carpeta `./legacy`.
 
 ## Reglas de Agente (Rules)

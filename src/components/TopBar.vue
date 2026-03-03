@@ -34,6 +34,13 @@
                 <span class="user-role">{{ auth.user?.rol === 'admin' ? 'Administrador' : 'Usuario' }}</span>
             </div>
 
+            <button @click="showPasswordModal = true" class="icon-btn theme-btn" title="Cambiar Contraseña">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path
+                        d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                </svg>
+            </button>
+
             <button @click="logout" class="logout-btn" title="Cerrar Sesión">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
@@ -42,17 +49,26 @@
             </button>
         </div>
     </header>
+
+    <ChangePasswordModal :show="showPasswordModal" @close="showPasswordModal = false"
+        @success="handlePasswordSuccess" />
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
+import ChangePasswordModal from './ChangePasswordModal.vue';
 
 const auth = useAuthStore();
 const router = useRouter();
 
 const isDark = ref(false);
+const showPasswordModal = ref(false);
+
+const handlePasswordSuccess = (message) => {
+    alert(message);
+};
 
 const toggleTheme = () => {
     isDark.value = !isDark.value;
