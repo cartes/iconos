@@ -48,12 +48,15 @@ export const useAuthStore = defineStore("auth", {
     },
 
     logout() {
+      // Limpiamos el estado local inmediatamente para evitar bucles o redirecciones incorrectas
       this.user = null;
       this.tenantName = null;
       this.isAuthenticated = false;
       localStorage.removeItem("user");
       localStorage.removeItem("tenantName");
       localStorage.removeItem("auth_token");
+
+      // Notificamos al servidor en segundo plano (ignorando errores si el token ya no vale)
       apiRequest("logout", { method: "POST" }).catch(() => {});
     },
 

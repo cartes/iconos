@@ -31,8 +31,8 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const requestUrl = error.config?.url || "";
 
-    //
-    if (status === 401 && !requestUrl.includes("login")) {
+    // Si es 401 y no es login ni logout, cerramos sesión localmente para evitar bucles
+    if (status === 401 && !requestUrl.includes("login") && !requestUrl.includes("logout")) {
       const authStore = useAuthStore();
       authStore.logout();
       window.location.hash = "#/login";
@@ -66,8 +66,8 @@ export const apiRequest = async (endpoint, options = {}) => {
     const status = error.response ? error.response.status : null;
     const data = error.response ? error.response.data : null;
 
-    // 401 — Sesión expirada
-    if (status === 401 && endpoint !== "login") {
+    // 401 — Sesión expirada (ignoramos login y logout para evitar recursión)
+    if (status === 401 && endpoint !== "login" && endpoint !== "logout") {
       localStorage.removeItem("user");
       localStorage.removeItem("auth_token");
       window.location.hash = "#/login";
