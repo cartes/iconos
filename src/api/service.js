@@ -1,4 +1,5 @@
-import axios from 'axios';
+import axios from "axios";
+import { useAuthStore } from "@/stores/auth";
 
 const API_BASE_URL = "https://apiiconos-production.up.railway.app/api"; //import.meta.env.VITE_API_URL || "http://localhost:8004/api";
 
@@ -7,8 +8,8 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
-    "X-Tenant": "1" // <-- Inyección permanente del identificador de la agencia para cada petición
-  }
+    "X-Tenant": "1", // <-- Inyección permanente del identificador de la agencia para cada petición
+  },
 });
 
 // Interceptor de peticiones para agregar el token dinámico
@@ -18,9 +19,42 @@ api.interceptors.request.use(
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }
+
+    // Inyectar el Tenant ID desde la sesión del usuario si esta disponible
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (user?.tenantId) {
+        config.headers["X-Tenant"] = user.tenantId;
+      } else {
+        // Si no hay tenantId, se establece el valor por defecto
+        config.headers["X-Tenant"] = "1";
+      }
+    } catch {
+      //
+      config.headers["X-Tenant"] = "1";
+    }
+
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
+);
+
+// Interceptor de respuestas: captura 401 global para limipar sesión y redirigir a login
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error.response?.status;
+    const requestUrl = error.config?.url || "";
+
+    //
+    if (status === 401 && !requestUrl.includes("login")) {
+      const authStore = useAuthStore();
+      authStore.logout();
+      window.location.hash = "#/login";
+    }
+
+    return Promise.reject(error);
+  },
 );
 
 // Mantenemos la función original para no romper ninguna llamada en otras partes del código
@@ -57,7 +91,11 @@ export const apiRequest = async (endpoint, options = {}) => {
 
     // 403 — Sin permisos
     if (status === 403) {
-      return { success: false, error: "No tienes permisos para realizar esta acción.", forbidden: true };
+      return {
+        success: false,
+        error: "No tienes permisos para realizar esta acción.",
+        forbidden: true,
+      };
     }
 
     // 422 — Errores de validación de Laravel: propagar los errors por campo
@@ -71,14 +109,14 @@ export const apiRequest = async (endpoint, options = {}) => {
       };
     }
 
-    const errorMessage = data?.error || data?.message || error.message || `Error del servidor (${status})`;
+    const errorMessage =
+      data?.error || data?.message || error.message || `Error del servidor (${status})`;
 
     return { success: false, error: errorMessage };
   }
 };
 
 // ── Dashboard de métricas ───────────────────────────────────────────
-export const getDashboardStats = () => apiRequest('/dashboard');
+export const getDashboardStats = () => apiRequest("/dashboard");
 
-export const trackIconClick = (iconId) =>
-  apiRequest(`/iconos/${iconId}/click`, { method: 'POST' });
+export const trackIconClick = (iconId) => apiRequest(`/iconos/${iconId}/click`, { method: "POST" });
