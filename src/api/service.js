@@ -1,14 +1,13 @@
 import axios from "axios";
 import { useAuthStore } from "@/stores/auth";
 
-const API_BASE_URL = "https://apiiconos-production.up.railway.app/api"; //import.meta.env.VITE_API_URL || "http://localhost:8004/api";
+const API_BASE_URL = "https://apiiconos-production.up.railway.app/api/1"; //import.meta.env.VITE_API_URL || "http://localhost:8004/api/1";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
-    "X-Tenant": "1", // <-- Inyección permanente del identificador de la agencia para cada petición
   },
 });
 
@@ -18,20 +17,6 @@ api.interceptors.request.use(
     const token = localStorage.getItem("auth_token");
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    // Inyectar el Tenant ID desde la sesión del usuario si esta disponible
-    try {
-      const user = JSON.parse(localStorage.getItem("user"));
-      if (user?.tenantId) {
-        config.headers["X-Tenant"] = user.tenantId;
-      } else {
-        // Si no hay tenantId, se establece el valor por defecto
-        config.headers["X-Tenant"] = "1";
-      }
-    } catch {
-      //
-      config.headers["X-Tenant"] = "1";
     }
 
     return config;
