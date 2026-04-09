@@ -47,7 +47,7 @@
 import { ref, reactive, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
-import { apiRequest } from '@/api/service';
+import { centralApiRequest } from '@/api/service';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
 
@@ -84,7 +84,7 @@ const handleSubmit = async () => {
 
     try {
         if (needsBootstrap.value) {
-            const res = await apiRequest('primer-admin', {
+            const res = await centralApiRequest('primer-admin', {
                 method: 'POST',
                 data: {
                     email: form.email,

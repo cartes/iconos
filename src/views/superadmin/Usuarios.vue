@@ -153,7 +153,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { apiRequest } from '@/api/service';
+import { centralApiRequest as apiRequest } from '@/api/service';
 
 const usuarios = ref([]);
 const loading = ref(true);

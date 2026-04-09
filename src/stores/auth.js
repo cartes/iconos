@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { apiRequest } from "@/api/service";
+import { apiRequest, centralApiRequest } from "@/api/service";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -84,7 +84,7 @@ export const useAuthStore = defineStore("auth", {
     },
 
     async checkBootstrap() {
-      const res = await apiRequest("estado");
+      const res = await centralApiRequest("estado");
       return res;
     },
   },

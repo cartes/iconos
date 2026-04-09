@@ -134,7 +134,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
-import { apiRequest } from '@/api/service';
+import { centralApiRequest as apiRequest } from '@/api/service';
 import BaseModal from '@/components/BaseModal.vue';
 import BaseButton from '@/components/BaseButton.vue';
 

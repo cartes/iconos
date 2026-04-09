@@ -63,7 +63,7 @@
 <script setup>
 import { ref, computed, onMounted, defineComponent, h } from 'vue';
 import { RouterLink } from 'vue-router';
-import { apiRequest } from '@/api/service';
+import { centralApiRequest as apiRequest } from '@/api/service';
 
 const loading = ref(true);
 const tenants = ref([]);

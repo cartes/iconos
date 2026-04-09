@@ -235,7 +235,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { apiRequest } from '@/api/service'
+import { centralApiRequest as apiRequest } from '@/api/service'
 import { useApiError } from '@/composables/useApiError'
 
 const { error, handleError, clearError, fieldError } = useApiError()

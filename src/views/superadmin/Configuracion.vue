@@ -108,7 +108,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
-import { apiRequest } from '@/api/service';
+import { apiRequest, centralApiRequest } from '@/api/service';
 
 const authStore = useAuthStore();
 
@@ -147,7 +147,7 @@ const endpoints = [
 async function verificarEstado() {
   chequeoLoading.value = true;
   try {
-    const res = await apiRequest('estado');
+    const res = await centralApiRequest('estado');
     sistemaOk.value = true;
     apiEstado.value = res;
   } catch {
